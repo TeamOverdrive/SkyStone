@@ -8,4 +8,5 @@ dependencies {
     implementation (name: 'tensorflow-lite-0.0.0-nightly', ext:'aar')
     implementation 'org.openftc:easyopencv:1.2'
     implementation 'com.acmerobotics.dashboard:dashboard:0.3.4'
+    implementation 'org.openftc:rev-extensions-2:1.2'
 }
