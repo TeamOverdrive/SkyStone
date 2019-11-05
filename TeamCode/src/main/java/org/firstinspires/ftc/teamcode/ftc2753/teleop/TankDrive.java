@@ -1,13 +1,10 @@
-package org.firstinspires.ftc.teamcode.FTC2753.teleop;
+package org.firstinspires.ftc.teamcode.ftc2753.teleop;
 
 import android.content.Context;
 
-import com.qualcomm.ftccommon.SoundPlayer;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
-import com.qualcomm.robotcore.util.ElapsedTime;
-import org.firstinspires.ftc.teamcode.FTC2753.util.nonStaticTelemetry;
 
 @TeleOp(name = "TankDrive")
 public class TankDrive extends LinearOpMode {

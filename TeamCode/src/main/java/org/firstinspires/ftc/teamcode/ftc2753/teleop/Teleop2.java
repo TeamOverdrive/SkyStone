@@ -1,18 +1,15 @@
-package org.firstinspires.ftc.teamcode.FTC2753.teleop;
+package org.firstinspires.ftc.teamcode.ftc2753.teleop;
 
 import com.qualcomm.hardware.bosch.BNO055IMU;
-import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
-import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
 import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
-import org.firstinspires.ftc.teamcode.FTC2753.subsystems.DriveTrain;
-import org.firstinspires.ftc.teamcode.FTC2753.util.nonStaticTelemetry;
+import org.firstinspires.ftc.teamcode.ftc2753.subsystems.DriveTrain;
 
 import java.util.Locale;
 
