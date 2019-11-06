@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode.drive.tank;
+package org.firstinspires.ftc.teamcode.acmerobotics.roadrunnerquickstart.drive.tank;
 
 import android.support.annotation.NonNull;
 
@@ -12,7 +12,7 @@ import com.qualcomm.robotcore.util.DifferentialControlLoopCoefficients;
 import java.util.Arrays;
 import java.util.List;
 
-import static org.firstinspires.ftc.teamcode.drive.DriveConstants.encoderTicksToInches;
+import static org.firstinspires.ftc.teamcode.acmerobotics.roadrunnerquickstart.drive.DriveConstants.encoderTicksToInches;
 /*
  * Simple tank drive hardware implementation for Modern Robotics hardware.
  */
