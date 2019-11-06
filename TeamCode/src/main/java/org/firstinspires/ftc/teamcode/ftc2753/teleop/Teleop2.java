@@ -1,5 +1,7 @@
 package org.firstinspires.ftc.teamcode.ftc2753.teleop;
 
+import com.acmerobotics.dashboard.config.Config;
+
 import com.qualcomm.hardware.bosch.BNO055IMU;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
@@ -15,6 +17,7 @@ import org.firstinspires.ftc.teamcode.ftc2753.subsystems.DriveTrain;
 
 import java.util.Locale;
 
+@Config
 @TeleOp(name = "Teleop2.1", group = "TeleOp")
 public class Teleop2 extends LinearOpMode {
 
@@ -31,13 +34,19 @@ public class Teleop2 extends LinearOpMode {
 
     private float intakeSpeed;
 
+    /*
+    note that with the config annotation above public class Teleop2,
+    the below public static non-final variables can be edited on the fly with FTC Dashboard
+    */
     //sideUp and sideDown are used for both the stone side grabber and the sensor array actuator
-    private static final double sideUp = 1;
-    private static final double sideDown = 0;
+    public static double sideUp = 180/270;
+    public static double sideDown = 0/270;
+    public static double grabberDiagnostic = 0.5; //grabber is in continuous mode rn
 
-    //values for the foundation grabber servos
-    private static final double foundationUp = 1;
-    private static final double foundationDown = 0;
+    //values for the foundation grabber servos; note foundationGrab() and foundationRelease() methods
+    public static double foundationUp = 1;
+    public static double foundationDown = 0;
+    public static double foundationDiagnostic = 0.5;
 
     DriveTrain drive = new DriveTrain();
 
@@ -62,6 +71,8 @@ public class Teleop2 extends LinearOpMode {
         initServos();
 
         waitForStart();
+
+
 
         while (opModeIsActive() && !isStopRequested()) {
 
@@ -94,6 +105,24 @@ public class Teleop2 extends LinearOpMode {
             drive.BackRight += gamepad1.right_trigger;
             drive.FrontRight += gamepad1.right_trigger;
 
+            //Servos
+            if(gamepad2.b){
+                sensorRotator.setPosition(sideDown);
+            }
+
+            else{
+                sensorRotator.setPosition(sideUp);
+            }
+
+            sideGrabber.setPosition(grabberDiagnostic);
+            foundationLeft.setPosition(foundationDiagnostic);
+
+            if(gamepad2.a)
+                grabFoundation();
+            if(gamepad2.y)
+                releaseFoundation();
+
+
             removeBrake();
             update();
 
@@ -103,6 +132,17 @@ public class Teleop2 extends LinearOpMode {
         }
         requestOpModeStop();
     }
+
+    private void grabFoundation() {
+        foundationRight.setPosition(foundationDown);
+        foundationLeft.setPosition(1-foundationDown);
+    }
+
+    private void releaseFoundation(){
+        foundationRight.setPosition(foundationUp);
+        foundationLeft.setPosition(1-foundationUp);
+    }
+
     public void initMotors() {
 
         motorBackLeft = hardwareMap.get(DcMotor.class, "left_back");
