@@ -1,11 +1,13 @@
-package org.openftc.revextensions2.examples;
+package org.firstinspires.ftc.teamcode.openftc.revextensions2.examples;
 
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
 import org.openftc.revextensions2.ExpansionHubServo;
 
 @TeleOp(group = "RevExtensions2Examples")
+@Disabled
 public class ServoPulseWidthExample extends OpMode
 {
     ExpansionHubServo servo;

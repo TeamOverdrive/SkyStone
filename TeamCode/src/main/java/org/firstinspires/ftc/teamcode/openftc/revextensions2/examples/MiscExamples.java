@@ -19,14 +19,16 @@
  * SOFTWARE.
  */
 
-package org.openftc.revextensions2.examples;
+package org.firstinspires.ftc.teamcode.openftc.revextensions2.examples;
 
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
 import org.openftc.revextensions2.ExpansionHubEx;
 
 @TeleOp(group = "RevExtensions2Examples")
+@Disabled
 public class MiscExamples extends LinearOpMode
 {
     ExpansionHubEx expansionHub;

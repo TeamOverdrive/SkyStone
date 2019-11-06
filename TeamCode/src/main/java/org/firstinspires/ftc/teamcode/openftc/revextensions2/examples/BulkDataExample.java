@@ -19,8 +19,9 @@
  * SOFTWARE.
  */
 
-package org.openftc.revextensions2.examples;
+package org.firstinspires.ftc.teamcode.openftc.revextensions2.examples;
 
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.AnalogInput;
@@ -31,6 +32,7 @@ import org.openftc.revextensions2.ExpansionHubMotor;
 import org.openftc.revextensions2.RevBulkData;
 
 @TeleOp(group = "RevExtensions2Examples")
+@Disabled
 public class BulkDataExample extends OpMode
 {
     RevBulkData bulkData;
