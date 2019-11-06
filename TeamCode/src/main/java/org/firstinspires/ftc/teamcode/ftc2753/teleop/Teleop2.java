@@ -4,6 +4,8 @@ import com.qualcomm.hardware.bosch.BNO055IMU;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.Servo;
+import com.qualcomm.robotcore.hardware.ServoImplEx;
 
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
@@ -22,7 +24,20 @@ public class Teleop2 extends LinearOpMode {
     private DcMotor motorFrontRight;
     private DcMotor intake;
 
+    private Servo sideGrabber;
+    private Servo sensorRotator;
+    private Servo foundationLeft;
+    private Servo foundationRight;
+
     private float intakeSpeed;
+
+    //sideUp and sideDown are used for both the stone side grabber and the sensor array actuator
+    private static final double sideUp = 1;
+    private static final double sideDown = 0;
+
+    //values for the foundation grabber servos
+    private static final double foundationUp = 1;
+    private static final double foundationDown = 0;
 
     DriveTrain drive = new DriveTrain();
 
@@ -43,11 +58,13 @@ public class Teleop2 extends LinearOpMode {
         imu = hardwareMap.get(BNO055IMU.class, "imu");
         imu.initialize(parameters);
 
+        initMotors();
+        initServos();
+
         waitForStart();
 
-        while (opModeIsActive()) {
+        while (opModeIsActive() && !isStopRequested()) {
 
-            initMotors();
             angles = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
             teleDrive(angles);
             if (gamepad1.left_bumper) {
@@ -84,7 +101,7 @@ public class Teleop2 extends LinearOpMode {
             telemetry.addData("Heading (Z?)", formatAngle(angles.angleUnit, angles.firstAngle));
             telemetry.update();
         }
-
+        requestOpModeStop();
     }
     public void initMotors() {
 
@@ -96,8 +113,15 @@ public class Teleop2 extends LinearOpMode {
 
         motorBackRight.setDirection(DcMotor.Direction.REVERSE);
         motorFrontRight.setDirection(DcMotor.Direction.REVERSE);
-
     }
+
+    public void initServos(){
+        sideGrabber = hardwareMap.get(ServoImplEx.class, "sideGrabber");
+        sensorRotator = hardwareMap.get(ServoImplEx.class, "sensor");
+        foundationLeft = hardwareMap.get(ServoImplEx.class, "foundationLeft");
+        foundationRight = hardwareMap.get(ServoImplEx.class, "foundationRight");
+    }
+
     public void teleDrive(Orientation angles) {
         double relativeAngle;
         relativeAngle = (Math.atan2(-gamepad1.left_stick_y, gamepad1.left_stick_x) - Math.PI / 4) - Math.toRadians(angles.firstAngle);
