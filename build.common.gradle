@@ -41,6 +41,9 @@ android {
         minSdkVersion 19
         targetSdkVersion 26
 
+        //Road Runner Multidex
+        multiDexEnabled true
+
         /**
          * We keep the versionCode and versionName of robot controller applications in sync with
          * the master information published in the AndroidManifest.xml file of the FtcRobotController
@@ -91,8 +94,8 @@ android {
     }
 
     compileOptions {
-        sourceCompatibility JavaVersion.VERSION_1_7
-        targetCompatibility JavaVersion.VERSION_1_7
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
     }
 
     sourceSets.main {
