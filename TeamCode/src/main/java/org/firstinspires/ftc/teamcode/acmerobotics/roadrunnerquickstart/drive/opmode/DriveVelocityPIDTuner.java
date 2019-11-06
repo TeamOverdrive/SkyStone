@@ -19,11 +19,11 @@ import com.qualcomm.robotcore.util.RobotLog;
 
 import org.firstinspires.ftc.teamcode.acmerobotics.roadrunnerquickstart.drive.mecanum.SampleMecanumDriveBase;
 import org.firstinspires.ftc.teamcode.acmerobotics.roadrunnerquickstart.drive.mecanum.SampleMecanumDriveREV;
-import org.firstinspires.ftc.teamcode.drive.DriveConstants;
+import org.firstinspires.ftc.teamcode.acmerobotics.roadrunnerquickstart.drive.DriveConstants;
 
 import java.util.List;
 
-import static org.firstinspires.ftc.teamcode.drive.DriveConstants.kV;
+import static org.firstinspires.ftc.teamcode.acmerobotics.roadrunnerquickstart.drive.DriveConstants.kV;
 
 /*
  * This routine is designed to tune the PID coefficients used by the REV Expansion Hubs for closed-

@@ -12,10 +12,10 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import org.firstinspires.ftc.robotcore.internal.system.Misc;
 import org.firstinspires.ftc.teamcode.acmerobotics.roadrunnerquickstart.drive.mecanum.SampleMecanumDriveBase;
 import org.firstinspires.ftc.teamcode.acmerobotics.roadrunnerquickstart.drive.mecanum.SampleMecanumDriveREV;
-import org.firstinspires.ftc.teamcode.util.LoggingUtil;
+import org.firstinspires.ftc.teamcode.acmerobotics.roadrunnerquickstart.util.LoggingUtil;
 
-import static org.firstinspires.ftc.teamcode.drive.DriveConstants.getMaxRpm;
-import static org.firstinspires.ftc.teamcode.drive.DriveConstants.rpmToVelocity;
+import static org.firstinspires.ftc.teamcode.acmerobotics.roadrunnerquickstart.drive.DriveConstants.getMaxRpm;
+import static org.firstinspires.ftc.teamcode.acmerobotics.roadrunnerquickstart.drive.DriveConstants.rpmToVelocity;
 
 /*
  * Op mode for computing kV, kStatic, and kA from various drive routines. For the curious, here's an
