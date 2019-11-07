@@ -41,6 +41,8 @@ public class SensorTest extends LinearOpMode {
     DcMotor motorFrontLeft;
     DcMotor motorFrontRight;
 
+    boolean wasYDown = false;
+
     boolean targetFound = false;
 
     NormalizedColorSensor colorSensor;
@@ -86,8 +88,13 @@ public class SensorTest extends LinearOpMode {
         waitForStart();
 
         while (distRight.getDistance(DistanceUnit.MM) > 60) {
-            drive.move("LEFT",(float) distRight.getDistance(DistanceUnit.MM)/120);
+            drive.move("RIGHT",(float) distRight.getDistance(DistanceUnit.MM)/600);
+            update();
+            telemetry.addData("RightDist: ", distRight.getDistance(DistanceUnit.MM));
+            telemetry.update();
         }
+        drive.move(0);
+        update();
 
         while (!targetFound) {
 

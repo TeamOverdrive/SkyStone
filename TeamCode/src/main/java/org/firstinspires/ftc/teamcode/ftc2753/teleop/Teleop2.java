@@ -135,6 +135,10 @@ public class Teleop2 extends LinearOpMode {
 
             //Telemetry
             telemetry.addData("Heading (Z?)", formatAngle(angles.angleUnit, angles.firstAngle));
+            telemetry.addData("back left ",drive.BackLeft);
+            telemetry.addData("front left ",drive.FrontLeft);
+            telemetry.addData("front right ",drive.FrontRight);
+            telemetry.addData("back right ",drive.BackRight);
             telemetry.update();
         }
         requestOpModeStop();
@@ -160,6 +164,7 @@ public class Teleop2 extends LinearOpMode {
 
         motorBackRight.setDirection(DcMotor.Direction.REVERSE);
         motorFrontRight.setDirection(DcMotor.Direction.REVERSE);
+
     }
 
     public void initServos(){
