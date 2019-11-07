@@ -105,6 +105,15 @@ public class SensorTest extends LinearOpMode {
             } else {
                 telemetry.addLine("Skystone");
             }
+            sleep(100);
+            if (Color.red((color)) >= 1) {
+                moveInch(8,0.1f,10);
+            } else {
+                telemetry.addLine("YEET");
+                telemetry.update();
+                drive.move(0);
+                update();
+            }
 
             // Balance the colors. The values returned by getColors() are normalized relative to the
             // maximum possible values that the sensor can measure. For example, a sensor might in a
@@ -128,15 +137,6 @@ public class SensorTest extends LinearOpMode {
                     .addData("g", "%02x", Color.green(color))
                     .addData("b", "%02x", Color.blue(color));
             telemetry.update();
-            sleep(100);
-            if (Color.red((color)) >= 1) {
-                moveInch(8,0.1f,10);
-            } else {
-                telemetry.addLine("YEET");
-                telemetry.update();
-                drive.move(0);
-                update();
-            }
         }
     }
 
