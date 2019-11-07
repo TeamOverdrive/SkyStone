@@ -97,8 +97,15 @@ public class Teleop2 extends LinearOpMode {
             if (gamepad2.right_trigger > 0.2)
             {
                 intakeSpeed = gamepad2.right_trigger * 1.25f;
-                intake.setPower(intakeSpeed);
             }
+            else if (gamepad2.left_trigger > 0.2)
+            {
+                intakeSpeed = gamepad2.left_trigger * -1.25f;
+            }
+            else
+                intakeSpeed = 0;
+
+            intake.setPower(intakeSpeed);
 
             drive.BackLeft += gamepad1.left_trigger;
             drive.FrontLeft += gamepad1.left_trigger;
@@ -173,7 +180,7 @@ public class Teleop2 extends LinearOpMode {
         }
 
         drive.move(relativeAngle, Math.sqrt(gamepad1.left_stick_x * gamepad1.left_stick_x +  gamepad1.left_stick_y * gamepad1.left_stick_y),
-                gamepad1.right_stick_x);
+                -gamepad1.right_stick_x);
     }
     public void update() {
 

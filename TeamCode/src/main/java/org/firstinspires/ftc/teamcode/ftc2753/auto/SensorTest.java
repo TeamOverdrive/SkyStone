@@ -5,6 +5,7 @@ import android.graphics.Color;
 import android.view.View;
 
 import com.qualcomm.hardware.bosch.BNO055IMU;
+import com.qualcomm.hardware.rev.Rev2mDistanceSensor;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
@@ -17,6 +18,7 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
+import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
 import org.firstinspires.ftc.teamcode.ftc2753.subsystems.DriveTrain;
 
@@ -39,6 +41,8 @@ public class SensorTest extends LinearOpMode {
     DcMotor motorFrontLeft;
     DcMotor motorFrontRight;
 
+    boolean targetFound = false;
+
     NormalizedColorSensor colorSensor;
     /** The relativeLayout field is used to aid in providing interesting visual feedback
      * in this sample application; you probably *don't* need something analogous when you
@@ -48,10 +52,17 @@ public class SensorTest extends LinearOpMode {
     public void runOpMode() throws InterruptedException {
 
         initMotors();
-        initIMU();
+        BNO055IMU imu = initIMU();
+
 
         int relativeLayoutId = hardwareMap.appContext.getResources().getIdentifier("RelativeLayout", "id", hardwareMap.appContext.getPackageName());
         relativeLayout = ((Activity) hardwareMap.appContext).findViewById(relativeLayoutId);
+
+        distRight = hardwareMap.get(DistanceSensor.class, "rightDistanceSensor");
+
+        // you can also cast this to a Rev2mDistanceSensor if you want to use added
+        // methods associated with the Rev2mDistanceSensor class.
+        Rev2mDistanceSensor sensorTimeOfFlight = (Rev2mDistanceSensor)distRight;
 
         float[] hsvValues = new float[3];
         final float values[] = hsvValues;
@@ -69,10 +80,16 @@ public class SensorTest extends LinearOpMode {
             ((SwitchableLight)colorSensor).enableLight(true);
         }
 
+        Orientation angles;
+
         // Wait for the start button to be pressed.
         waitForStart();
 
-        while (true) {
+        while (distRight.getDistance(DistanceUnit.MM) > 60) {
+            drive.move("LEFT",(float) distRight.getDistance(DistanceUnit.MM)/120);
+        }
+
+        while (!targetFound) {
 
             NormalizedRGBA colors = colorSensor.getNormalizedColors();
 
@@ -100,19 +117,20 @@ public class SensorTest extends LinearOpMode {
                     .addData("r", "%02x", Color.red(color))
                     .addData("g", "%02x", Color.green(color))
                     .addData("b", "%02x", Color.blue(color));
+            telemetry.addData("RightDist: ", distRight.getDistance(DistanceUnit.MM));
             if (Color.red((color)) > 14) {
                 telemetry.addLine("Nope");
             } else {
                 telemetry.addLine("Skystone");
             }
-            sleep(100);
             if (Color.red((color)) >= 1) {
-                moveInch(8,0.1f,10);
+                moveInch(-8,0.5f,10);
             } else {
                 telemetry.addLine("YEET");
                 telemetry.update();
                 drive.move(0);
                 update();
+                targetFound = true;
             }
 
             // Balance the colors. The values returned by getColors() are normalized relative to the
@@ -293,7 +311,7 @@ public class SensorTest extends LinearOpMode {
         motorFrontLeft.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         motorBackLeft.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
     }
-    public void initIMU() {
+    public BNO055IMU initIMU() {
         BNO055IMU imu;
 
         BNO055IMU.Parameters IMUparameters = new BNO055IMU.Parameters();
@@ -305,6 +323,8 @@ public class SensorTest extends LinearOpMode {
 
         imu = hardwareMap.get(BNO055IMU.class, "imu");
         imu.initialize(IMUparameters);
+
+        return imu;
     }
 
 
