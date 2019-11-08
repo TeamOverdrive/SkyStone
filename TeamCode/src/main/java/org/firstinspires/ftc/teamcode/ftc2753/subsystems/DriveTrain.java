@@ -33,15 +33,15 @@ public class DriveTrain {
         if (leftRight.equalsIgnoreCase("RIGHT")) {
             this.FrontLeft = Math.abs(speed);
             this.FrontRight = -Math.abs(speed);
-            this.BackLeft = -Math.abs(speed);
-            this.BackRight = Math.abs(speed);
+            this.BackLeft = -Math.abs(speed * 0.87);
+            this.BackRight = Math.abs(speed * 0.87);
         }
 
         if (leftRight.equalsIgnoreCase("LEFT")) {
             this.FrontLeft = -Math.abs(speed);
             this.FrontRight = Math.abs(speed);
-            this.BackLeft = Math.abs(speed);
-            this.BackRight = -Math.abs(speed);
+            this.BackLeft = Math.abs(speed * 0.87);
+            this.BackRight = -Math.abs(speed * 0.87);
         }
     }
 

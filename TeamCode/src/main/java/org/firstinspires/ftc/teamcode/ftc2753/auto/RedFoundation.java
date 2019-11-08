@@ -26,9 +26,9 @@ import org.firstinspires.ftc.teamcode.ftc2753.subsystems.DriveTrain;
 
 import static org.firstinspires.ftc.robotcore.external.navigation.AxesOrder.XYZ;
 
-@Autonomous(name="Test", group="auto")
+@Autonomous(name="Red Foundation", group="auto")
 
-public class SensorTest extends LinearOpMode {
+public class RedFoundation extends LinearOpMode {
 
     DriveTrain drive = new DriveTrain();
 
@@ -44,15 +44,32 @@ public class SensorTest extends LinearOpMode {
     DcMotor motorFrontRight;
 
     private Servo sideGrabber;
-    private Servo sensorRotator;
-    private Servo foundationLeft;
-    private Servo foundationRight;
 
     boolean wasYDown = false;
 
     boolean targetFound = false;
     Orientation             lastAngles = new Orientation();
     double                  globalAngle, power = .30, correction;
+
+    private Servo sensorRotator;
+    private Servo foundationLeft;
+    private Servo foundationRight;
+
+    private float intakeSpeed;
+
+    /*
+    note that with the config annotation above public class Teleop2,
+    the below public static non-final variables can be edited on the fly with FTC Dashboard
+    */
+    //sideUp and sideDown are used for both the stone side grabber and the sensor array actuator
+    public static double sideUp = 180/270;
+    public static double sideDown = 0/270;
+    public static double grabberDiagnostic = 0.5; //grabber is in continuous mode rn
+
+    //values for the foundation grabber servos; note foundationGrab() and foundationRelease() methods
+    public static double foundationUp = 1;
+    public static double foundationDown = 0;
+    public static double foundationDiagnostic = 0.5;
 
     NormalizedColorSensor colorSensor;
     /** The relativeLayout field is used to aid in providing interesting visual feedback
@@ -62,11 +79,12 @@ public class SensorTest extends LinearOpMode {
 
     public void runOpMode() throws InterruptedException {
 
-        sideGrabber.setPosition(180/270);
-
         initMotors();
         initServos();
         BNO055IMU imu = initIMU();
+
+        foundationLeft.setPosition(foundationUp);
+        foundationRight.setPosition(foundationUp);
 
 
         int relativeLayoutId = hardwareMap.appContext.getResources().getIdentifier("RelativeLayout", "id", hardwareMap.appContext.getPackageName());
@@ -99,81 +117,18 @@ public class SensorTest extends LinearOpMode {
         // Wait for the start button to be pressed.
         waitForStart();
 
-        rotate(90,0.3f,imu);
-
+        moveInch(-34,0.7f,4);
         drive.move(0);
         update();
 
-        while (!targetFound) {
-
-            NormalizedRGBA colors = colorSensor.getNormalizedColors();
-
-            /** Use telemetry to display feedback on the driver station. We show the conversion
-             * of the colors to hue, saturation and value, and display the the normalized values
-             * as returned from the sensor.
-             * @see <a href="http://infohost.nmt.edu/tcc/help/pubs/colortheory/web/hsv.html">HSV</a>*/
-
-            Color.colorToHSV(colors.toColor(), hsvValues);
-            telemetry.addLine()
-                    .addData("H", "%.3f", hsvValues[0])
-                    .addData("S", "%.3f", hsvValues[1])
-                    .addData("V", "%.3f", hsvValues[2]);
-            telemetry.addLine()
-                    .addData("a", "%.3f", colors.alpha)
-                    .addData("r", "%.3f", colors.red)
-                    .addData("g", "%.3f", colors.green)
-                    .addData("b", "%.3f", colors.blue);
-
-            /** We also display a conversion of the colors to an equivalent Android color integer.
-             * @see Color */
-            int color = colors.toColor();
-            telemetry.addLine("raw Android color: ")
-                    .addData("a", "%02x", Color.alpha(color))
-                    .addData("r", "%02x", Color.red(color))
-                    .addData("g", "%02x", Color.green(color))
-                    .addData("b", "%02x", Color.blue(color));
-            telemetry.addData("RightDist: ", distRight.getDistance(DistanceUnit.MM));
-            if (Color.red((color)) > 14) {
-                telemetry.addLine("Nope");
-            } else {
-                telemetry.addLine("Skystone");
-            }
-            if (Color.red((color)) >= 1) {
-                moveInch(-8,0.5f,10);
-            } else {
-                telemetry.addLine("YEET");
-                telemetry.update();
-                drive.move(0);
-                update();
-                targetFound = true;
-            }
-
-            // Balance the colors. The values returned by getColors() are normalized relative to the
-            // maximum possible values that the sensor can measure. For example, a sensor might in a
-            // particular configuration be able to internally measure color intensity in a range of
-            // [0, 10240]. In such a case, the values returned by getColors() will be divided by 10240
-            // so as to return a value it the range [0,1]. However, and this is the point, even so, the
-            // values we see here may not get close to 1.0 in, e.g., low light conditions where the
-            // sensor measurements don't approach their maximum limit. In such situations, the *relative*
-            // intensities of the colors are likely what is most interesting. Here, for example, we boost
-            // the signal on the colors while maintaining their relative balance so as to give more
-            // vibrant visual feedback on the robot controller visual display.
-            float max = Math.max(Math.max(Math.max(colors.red, colors.green), colors.blue), colors.alpha);
-            colors.red   /= max;
-            colors.green /= max;
-            colors.blue  /= max;
-            color = colors.toColor();
-
-            telemetry.addLine("normalized color:  ")
-                    .addData("a", "%02x", Color.alpha(color))
-                    .addData("r", "%02x", Color.red(color))
-                    .addData("g", "%02x", Color.green(color))
-                    .addData("b", "%02x", Color.blue(color));
-            telemetry.update();
-        }
-        moveInch(-9,0.4f,3);
-
         sideGrabber.setPosition(0);
+
+        foundationLeft.setPosition(foundationDown);
+        foundationRight.setPosition(foundationDown);
+
+        moveInch(34,1,3);
+        drive.move("RIGHT",1);
+        update();
 
     }
 
