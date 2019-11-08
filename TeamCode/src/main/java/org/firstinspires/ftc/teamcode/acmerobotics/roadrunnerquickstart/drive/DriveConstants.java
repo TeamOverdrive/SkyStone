@@ -14,8 +14,10 @@ public class DriveConstants {
     /*
      * TODO: Tune or adjust the following constants to fit your robot. Note that the non-final
      * fields may also be edited through the dashboard (connect to the robot's WiFi network and
-     * navigate to https://192.168.49.1:8080/dash). Make sure to save the values here after you
-     * adjust them in the dashboard; **config variable changes don't persist between app restarts**.
+     * navigate to https://192.168.49.1:8080/dash for the robot controller phone
+     * or https://192.168.49.1:8080/dash for the control hub).
+     *  Make sure to save the values here after you adjust them in the dashboard;
+     * **config variable changes don't persist between app restarts**.
      */
     private static final MotorConfigurationType MOTOR_CONFIG =
             MotorConfigurationType.getMotorType(NeveRest20Gearmotor.class);
