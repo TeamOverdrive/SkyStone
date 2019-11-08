@@ -47,6 +47,7 @@ public class SensorTest extends LinearOpMode {
     private Servo sensorRotator;
     private Servo foundationLeft;
     private Servo foundationRight;
+    private Servo intakeLift;
 
     boolean wasYDown = false;
 
@@ -66,7 +67,9 @@ public class SensorTest extends LinearOpMode {
         initServos();
         BNO055IMU imu = initIMU();
 
-        sideGrabber.setPosition(180/270);
+        sideGrabber.setPosition(0);
+        intakeLift.setPosition(1);
+
 
 
         int relativeLayoutId = hardwareMap.appContext.getResources().getIdentifier("RelativeLayout", "id", hardwareMap.appContext.getPackageName());
@@ -99,12 +102,15 @@ public class SensorTest extends LinearOpMode {
         // Wait for the start button to be pressed.
         waitForStart();
 
-        rotate(90,0.3f,imu);
+        while (distRight.getDistance(DistanceUnit.MM) > 140) {
+            drive.move("RIGHT",0.4f);
+            update();
+        }
+        moveInch(-1,1,0.3f,3);
 
-        drive.move(0);
-        update();
+        sleep(100);
 
-        while (!targetFound) {
+        while (true) {
 
             NormalizedRGBA colors = colorSensor.getNormalizedColors();
 
@@ -138,14 +144,15 @@ public class SensorTest extends LinearOpMode {
             } else {
                 telemetry.addLine("Skystone");
             }
-            if (Color.red((color)) >= 1) {
+            if (Color.red((color)) > 0) {
                 moveInch(-8,0.5f,10);
             } else {
                 telemetry.addLine("YEET");
                 telemetry.update();
                 drive.move(0);
                 update();
-                targetFound = true;
+                break;
+
             }
 
             // Balance the colors. The values returned by getColors() are normalized relative to the
@@ -171,11 +178,20 @@ public class SensorTest extends LinearOpMode {
                     .addData("b", "%02x", Color.blue(color));
             telemetry.update();
         }
-        moveInch(-9,0.4f,3);
+        moveInch(-11,0.4f,3);
 
-        sideGrabber.setPosition(0);
+        sleep(1000);
+
+        runtime.reset();
+        while (runtime.seconds() < 0.5) {
+            drive.move("LEFT", 0.8f);
+            update();
+        }
+        drive.move(0);
+        update();
 
     }
+
 
     public void initMotors() {
 
@@ -442,6 +458,7 @@ public class SensorTest extends LinearOpMode {
         sensorRotator = hardwareMap.get(ServoImplEx.class, "sensor");
         foundationLeft = hardwareMap.get(ServoImplEx.class, "foundationLeft");
         foundationRight = hardwareMap.get(ServoImplEx.class, "foundationRight");
+        intakeLift = hardwareMap.get(ServoImplEx.class, "liftIntake");
     }
 
 
