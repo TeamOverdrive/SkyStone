@@ -44,6 +44,8 @@ public class SensorTest extends LinearOpMode {
     boolean wasYDown = false;
 
     boolean targetFound = false;
+    Orientation             lastAngles = new Orientation();
+    double                  globalAngle, power = .30, correction;
 
     NormalizedColorSensor colorSensor;
     /** The relativeLayout field is used to aid in providing interesting visual feedback
@@ -87,12 +89,8 @@ public class SensorTest extends LinearOpMode {
         // Wait for the start button to be pressed.
         waitForStart();
 
-        while (distRight.getDistance(DistanceUnit.MM) > 60) {
-            drive.move("RIGHT",(float) distRight.getDistance(DistanceUnit.MM)/600);
-            update();
-            telemetry.addData("RightDist: ", distRight.getDistance(DistanceUnit.MM));
-            telemetry.update();
-        }
+        rotate(90,0.3f,imu);
+
         drive.move(0);
         update();
 
@@ -333,6 +331,99 @@ public class SensorTest extends LinearOpMode {
 
         return imu;
     }
+
+    //Everything after this is copied
+    private void resetAngle(BNO055IMU imu)
+    {
+        lastAngles = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
+
+        globalAngle = 0;
+    }
+
+    /**
+     * Get current cumulative angle rotation from last reset.
+     * @return Angle in degrees. + = left, - = right.
+     */
+    private double getAngle(BNO055IMU imu)
+    {
+        // We experimentally determined the Z axis is the axis we want to use for heading angle.
+        // We have to process the angle because the imu works in euler angles so the Z axis is
+        // returned as 0 to +180 or 0 to -180 rolling back to -179 or +179 when rotation passes
+        // 180 degrees. We detect this transition and track the total cumulative angle of rotation.
+
+        Orientation angles = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
+
+        double deltaAngle = angles.firstAngle - lastAngles.firstAngle;
+
+        if (deltaAngle < -180)
+            deltaAngle += 360;
+        else if (deltaAngle > 180)
+            deltaAngle -= 360;
+
+        globalAngle += deltaAngle;
+
+        lastAngles = angles;
+
+        return globalAngle;
+    }
+
+    /**
+     * See if we are moving in a straight line and if not return a power correction value.
+     * @return Power adjustment, + is adjust left - is adjust right.
+     */
+
+    private void rotate(int degrees, double power,BNO055IMU imu)
+    {
+        double  leftPower, rightPower;
+
+        // restart imu movement tracking.
+        resetAngle(imu);
+
+        // getAngle() returns + when rotating counter clockwise (left) and - when rotating
+        // clockwise (right).
+
+        if (degrees < 0)
+        {   // turn right.
+            leftPower = power;
+            rightPower = -power;
+        }
+        else if (degrees > 0)
+        {   // turn left.
+            leftPower = -power;
+            rightPower = power;
+        }
+        else return;
+
+        // set power to rotate.
+        motorBackLeft.setPower(leftPower);
+        motorFrontLeft.setPower(leftPower);
+        motorBackRight.setPower(rightPower);
+        motorFrontRight.setPower(rightPower);
+
+        // rotate until turn is completed.
+        if (degrees < 0)
+        {
+            // On right turn we have to get off zero first.
+            while (opModeIsActive() && getAngle(imu) == 0) {}
+
+            while (opModeIsActive() && getAngle(imu) > degrees) {}
+        }
+        else    // left turn.
+            while (opModeIsActive() && getAngle(imu) < degrees) {}
+
+        // turn the motors off.
+        motorBackLeft.setPower(0);
+        motorFrontLeft.setPower(0);
+        motorBackRight.setPower(0);
+        motorFrontRight.setPower(0);
+
+        // wait for rotation to stop.
+        sleep(400);
+
+        // reset angle tracking on new heading.
+        resetAngle(imu);
+    }
+
 
 
 

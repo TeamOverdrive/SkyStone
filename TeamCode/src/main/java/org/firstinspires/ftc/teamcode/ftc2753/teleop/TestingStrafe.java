@@ -22,9 +22,9 @@ public class TestingStrafe extends LinearOpMode {
         ElapsedTime runtime = new ElapsedTime();
 
         while(opModeIsActive()) {
-            motorBackLeft.setPower(-0.2 * 22/25);
+            motorBackLeft.setPower(-0.2 * 0.87);
             motorFrontLeft.setPower(0.2);
-            motorBackRight.setPower(0.2 * 22/25);
+            motorBackRight.setPower(0.2 * 0.87);
             motorFrontRight.setPower(-0.2);
             // if (runtime.seconds() > 1)
                 // requestOpModeStop();
