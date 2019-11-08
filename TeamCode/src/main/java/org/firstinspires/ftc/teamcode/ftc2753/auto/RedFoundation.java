@@ -117,7 +117,7 @@ public class RedFoundation extends LinearOpMode {
         // Wait for the start button to be pressed.
         waitForStart();
 
-        moveInch(-34,0.7f,4);
+        moveInch(34,0.7f,4);
         drive.move(0);
         update();
 
@@ -126,7 +126,7 @@ public class RedFoundation extends LinearOpMode {
         foundationLeft.setPosition(foundationDown);
         foundationRight.setPosition(foundationDown);
 
-        moveInch(34,1,3);
+        moveInch(-34,1,3);
         drive.move("RIGHT",1);
         update();
 

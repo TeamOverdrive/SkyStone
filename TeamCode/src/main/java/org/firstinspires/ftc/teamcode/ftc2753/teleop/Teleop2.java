@@ -31,6 +31,7 @@ public class Teleop2 extends LinearOpMode {
     private Servo sensorRotator;
     private Servo foundationLeft;
     private Servo foundationRight;
+    private Servo intakeLift;
 
     private float intakeSpeed;
 
@@ -69,6 +70,7 @@ public class Teleop2 extends LinearOpMode {
 
         initMotors();
         initServos();
+        intakeLift.setPosition(1);
 
         waitForStart();
 
@@ -124,10 +126,16 @@ public class Teleop2 extends LinearOpMode {
             sideGrabber.setPosition(grabberDiagnostic);
             foundationLeft.setPosition(foundationDiagnostic);
 
-            if(gamepad2.a)
+            if(gamepad2.b)
                 grabFoundation();
-            if(gamepad2.y)
+            if(gamepad2.x)
                 releaseFoundation();
+            if (gamepad2.y) {
+                intakeLift.setPosition(1);
+            }
+            if (gamepad2.a) {
+                intakeLift.setPosition(0);
+            }
 
 
 
@@ -173,6 +181,7 @@ public class Teleop2 extends LinearOpMode {
         sensorRotator = hardwareMap.get(ServoImplEx.class, "sensor");
         foundationLeft = hardwareMap.get(ServoImplEx.class, "foundationLeft");
         foundationRight = hardwareMap.get(ServoImplEx.class, "foundationRight");
+        intakeLift = hardwareMap.get(ServoImplEx.class, "liftIntake");
     }
 
     public void teleDrive(Orientation angles) {

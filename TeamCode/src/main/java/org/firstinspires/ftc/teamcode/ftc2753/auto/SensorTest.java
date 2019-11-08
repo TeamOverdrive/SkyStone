@@ -62,11 +62,11 @@ public class SensorTest extends LinearOpMode {
 
     public void runOpMode() throws InterruptedException {
 
-        sideGrabber.setPosition(180/270);
-
         initMotors();
         initServos();
         BNO055IMU imu = initIMU();
+
+        sideGrabber.setPosition(180/270);
 
 
         int relativeLayoutId = hardwareMap.appContext.getResources().getIdentifier("RelativeLayout", "id", hardwareMap.appContext.getPackageName());
