@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.graphics.Color;
 import android.view.View;
 
+import com.acmerobotics.dashboard.config.Config;
 import com.qualcomm.hardware.bosch.BNO055IMU;
 import com.qualcomm.hardware.rev.Rev2mDistanceSensor;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
@@ -26,6 +27,7 @@ import org.firstinspires.ftc.teamcode.ftc2753.subsystems.DriveTrain;
 
 import static org.firstinspires.ftc.robotcore.external.navigation.AxesOrder.XYZ;
 
+@Config
 @Autonomous(name="Test", group="auto")
 
 public class SensorTest extends LinearOpMode {
@@ -49,6 +51,9 @@ public class SensorTest extends LinearOpMode {
     private Servo foundationRight;
     private Servo intakeLift;
 
+    public static double GRABBERUP = 0.66;
+    public static double GRABBERDOWN = 0.8;
+
     boolean wasYDown = false;
 
     boolean targetFound = false;
@@ -67,7 +72,7 @@ public class SensorTest extends LinearOpMode {
         initServos();
         BNO055IMU imu = initIMU();
 
-        sideGrabber.setPosition(0);
+        sideGrabber.setPosition(0.5f);
         intakeLift.setPosition(1);
 
 
@@ -102,8 +107,8 @@ public class SensorTest extends LinearOpMode {
         // Wait for the start button to be pressed.
         waitForStart();
 
-        strafeInch(28,1,7);
-        while (distRight.getDistance(DistanceUnit.MM) > 185) {
+        strafeInch(33,1,7);
+        while (distRight.getDistance(DistanceUnit.MM) > 90) {
             drive.move("LEFT",0.2f);
             update();
         }
@@ -111,9 +116,9 @@ public class SensorTest extends LinearOpMode {
         drive.move(0);
         update();
 
-        sleep(100);
+        sleep(500);
 
-        while (true) {
+        while (!targetFound) {
 
             NormalizedRGBA colors = colorSensor.getNormalizedColors();
 
@@ -148,14 +153,12 @@ public class SensorTest extends LinearOpMode {
                 telemetry.addLine("Skystone");
             }
             if (Color.red((color)) > 0) {
-                drive.move(0.4f);
+                drive.move(0.2f);
                 update();
             } else {
-                telemetry.addLine("YEET");
-                telemetry.update();
                 drive.move(0);
                 update();
-                break;
+                targetFound = true;
 
             }
 
@@ -183,11 +186,29 @@ public class SensorTest extends LinearOpMode {
                     .addData("b", "%02x", Color.blue(color));
             telemetry.update();
         }
-        moveInch(14,0.2f,5);
+        moveInch(9,0.2f,5);
+
+        // sleep(1000);
+
+        strafeInch(3,0.3f,1);
+
+        sideGrabber.setPosition(0);
 
         sleep(1000);
 
-        strafeInch(3,0.3f,1);
+        strafeInch(-13,0.3f,100);
+
+        moveInch(70,0.8f,100);
+
+        sideGrabber.setPosition(0.5f);
+
+        sleep(1000);
+
+        moveInch(-110,0.8f,100);
+
+        moveInch(64,0.8f,100);
+
+
 
     }
 
@@ -239,6 +260,11 @@ public class SensorTest extends LinearOpMode {
     }
     public void moveInch(int inches, float speed, float timeout) {
 
+        motorFrontRight.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        motorBackRight.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        motorFrontLeft.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        motorBackLeft.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+
         int motorFrontRightTP = motorFrontRight.getCurrentPosition() + (int)(inches * drive.COUNTS_PER_INCH);
         int motorBackRightTP = motorBackRight.getCurrentPosition() + (int)(inches * drive.COUNTS_PER_INCH);
         int motorFrontLeftTP = motorFrontLeft.getCurrentPosition() + (int)(inches * drive.COUNTS_PER_INCH);
@@ -248,11 +274,6 @@ public class SensorTest extends LinearOpMode {
         motorBackRight.setTargetPosition(motorBackRightTP);
         motorFrontLeft.setTargetPosition(motorFrontLeftTP);
         motorBackLeft.setTargetPosition(motorBackLeftTP);
-
-        motorFrontRight.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        motorBackRight.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        motorFrontLeft.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        motorBackLeft.setMode(DcMotor.RunMode.RUN_TO_POSITION);
 
         this.runtime.reset();
 
