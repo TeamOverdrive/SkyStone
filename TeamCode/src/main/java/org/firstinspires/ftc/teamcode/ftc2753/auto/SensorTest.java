@@ -28,7 +28,7 @@ import org.firstinspires.ftc.teamcode.ftc2753.subsystems.DriveTrain;
 import static org.firstinspires.ftc.robotcore.external.navigation.AxesOrder.XYZ;
 
 @Config
-@Autonomous(name="Test", group="auto")
+@Autonomous(name="Red-Skystone", group="auto")
 
 public class SensorTest extends LinearOpMode {
 
@@ -107,7 +107,7 @@ public class SensorTest extends LinearOpMode {
         // Wait for the start button to be pressed.
         waitForStart();
 
-        strafeInch(33,1,7);
+        strafeInch(33,0.95f,7);
         while (distRight.getDistance(DistanceUnit.MM) > 90) {
             drive.move("LEFT",0.2f);
             update();
@@ -196,17 +196,19 @@ public class SensorTest extends LinearOpMode {
 
         sleep(1000);
 
-        strafeInch(-13,0.3f,100);
+        strafeInch(-15,0.3f,100);
 
-        moveInch(70,0.8f,100);
+        moveInch(60,0.5f,100);
 
         sideGrabber.setPosition(0.5f);
 
         sleep(1000);
 
-        moveInch(-110,0.8f,100);
+        moveInch(-100,0.4f,100);
 
-        moveInch(64,0.8f,100);
+        moveInch(58,0.6f,100);
+
+        strafeInch(10,0.1f,3);
 
 
 
