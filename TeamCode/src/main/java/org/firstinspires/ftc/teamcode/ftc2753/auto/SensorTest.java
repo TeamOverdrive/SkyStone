@@ -102,11 +102,14 @@ public class SensorTest extends LinearOpMode {
         // Wait for the start button to be pressed.
         waitForStart();
 
-        while (distRight.getDistance(DistanceUnit.MM) > 140) {
-            drive.move("RIGHT",0.4f);
+        strafeInch(28,1,7);
+        while (distRight.getDistance(DistanceUnit.MM) > 185) {
+            drive.move("LEFT",0.2f);
             update();
         }
-        moveInch(-1,1,0.3f,3);
+
+        drive.move(0);
+        update();
 
         sleep(100);
 
@@ -145,7 +148,8 @@ public class SensorTest extends LinearOpMode {
                 telemetry.addLine("Skystone");
             }
             if (Color.red((color)) > 0) {
-                moveInch(-8,0.5f,10);
+                drive.move(0.4f);
+                update();
             } else {
                 telemetry.addLine("YEET");
                 telemetry.update();
@@ -154,6 +158,7 @@ public class SensorTest extends LinearOpMode {
                 break;
 
             }
+
 
             // Balance the colors. The values returned by getColors() are normalized relative to the
             // maximum possible values that the sensor can measure. For example, a sensor might in a
@@ -178,17 +183,11 @@ public class SensorTest extends LinearOpMode {
                     .addData("b", "%02x", Color.blue(color));
             telemetry.update();
         }
-        moveInch(-11,0.4f,3);
+        moveInch(14,0.2f,5);
 
         sleep(1000);
 
-        runtime.reset();
-        while (runtime.seconds() < 0.5) {
-            drive.move("LEFT", 0.8f);
-            update();
-        }
-        drive.move(0);
-        update();
+        strafeInch(3,0.3f,1);
 
     }
 
@@ -459,6 +458,47 @@ public class SensorTest extends LinearOpMode {
         foundationLeft = hardwareMap.get(ServoImplEx.class, "foundationLeft");
         foundationRight = hardwareMap.get(ServoImplEx.class, "foundationRight");
         intakeLift = hardwareMap.get(ServoImplEx.class, "liftIntake");
+    }
+    public void strafeInch(int inches, float speed, float timeout) {
+
+        int motorFrontRightTP = motorFrontRight.getCurrentPosition() + (int)(inches * drive.COUNTS_PER_INCH);
+        int motorBackRightTP = motorBackRight.getCurrentPosition() + (int)(-inches * drive.COUNTS_PER_INCH);
+        int motorFrontLeftTP = motorFrontLeft.getCurrentPosition() + (int)(-inches * drive.COUNTS_PER_INCH);
+        int motorBackLeftTP = motorBackLeft.getCurrentPosition() + (int)(inches * drive.COUNTS_PER_INCH);
+
+        motorFrontRight.setTargetPosition(motorFrontRightTP);
+        motorBackRight.setTargetPosition(motorBackRightTP);
+        motorFrontLeft.setTargetPosition(motorFrontLeftTP);
+        motorBackLeft.setTargetPosition(motorBackLeftTP);
+
+        motorFrontRight.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        motorBackRight.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        motorFrontLeft.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        motorBackLeft.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+
+        this.runtime.reset();
+
+        motorFrontRight.setPower(Math.abs(speed));
+        motorBackRight.setPower(Math.abs(speed));
+        motorFrontLeft.setPower(Math.abs(speed));
+        motorBackLeft.setPower(Math.abs(speed));
+
+
+        while (opModeIsActive() &&
+                (this.runtime.seconds() < timeout) &&
+                (motorFrontRight.isBusy() && motorBackRight.isBusy() && motorFrontLeft.isBusy() && motorBackLeft.isBusy())) {
+
+        }
+
+        motorFrontRight.setPower(0);
+        motorBackRight.setPower(0);
+        motorFrontLeft.setPower(0);
+        motorBackLeft.setPower(0);
+
+        motorFrontRight.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        motorBackRight.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        motorFrontLeft.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        motorBackLeft.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
     }
 
 

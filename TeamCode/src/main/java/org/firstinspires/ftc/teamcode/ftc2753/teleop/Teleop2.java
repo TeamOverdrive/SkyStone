@@ -74,7 +74,10 @@ public class Teleop2 extends LinearOpMode {
 
         waitForStart();
 
-
+        setBrake(motorFrontLeft);
+        setBrake(motorFrontRight);
+        setBrake(motorBackLeft);
+        setBrake(motorBackRight);
 
         while (opModeIsActive() && !isStopRequested()) {
 
@@ -138,8 +141,6 @@ public class Teleop2 extends LinearOpMode {
             }
 
 
-
-            removeBrake();
             update();
 
             //Telemetry
