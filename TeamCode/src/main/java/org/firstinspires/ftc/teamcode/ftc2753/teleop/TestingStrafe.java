@@ -16,6 +16,8 @@ public class TestingStrafe extends LinearOpMode {
     private DcMotor motorFrontRight;
 
     private Servo sideGrabber;
+    private Servo foundationLeft;
+    private Servo foundationRight;
 
     public void runOpMode() {
 
@@ -24,21 +26,27 @@ public class TestingStrafe extends LinearOpMode {
         waitForStart();
 
         sideGrabber = hardwareMap.get(ServoImplEx.class, "sideGrabber");
+        foundationLeft = hardwareMap.get(ServoImplEx.class, "foundationLeft");
+        foundationRight = hardwareMap.get(ServoImplEx.class, "foundationRight");
 
         ElapsedTime runtime = new ElapsedTime();
 
         while(opModeIsActive()) {
             if (gamepad1.a) {
-                sideGrabber.setPosition(0.5f);
+                foundationLeft.setPosition(0.5f);
+                foundationRight.setPosition(0.5f);
             }
             if (gamepad1.b) {
-                sideGrabber.setPosition(1.0f);
+                foundationLeft.setPosition(1.0f);
+                foundationRight.setPosition(1.0f);
             }
             if (gamepad1.y) {
-                sideGrabber.setPosition(0.0f);
+                foundationLeft.setPosition(0.0f);
+                foundationRight.setPosition(0.0f);
             }
             if (gamepad1.x) {
-                sideGrabber.setPosition(0.33f);
+                foundationLeft.setPosition(0.33f);
+                foundationRight.setPosition(0.33f);
             }
             //motorBackLeft.setPower(0.2 * 0.87);
             //motorFrontLeft.setPower(-0.2);

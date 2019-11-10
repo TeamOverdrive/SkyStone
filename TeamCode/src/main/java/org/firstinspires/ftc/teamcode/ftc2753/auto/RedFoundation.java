@@ -83,51 +83,40 @@ public class RedFoundation extends LinearOpMode {
         initServos();
         BNO055IMU imu = initIMU();
 
-        foundationLeft.setPosition(foundationUp);
-        foundationRight.setPosition(foundationUp);
-
-
-        int relativeLayoutId = hardwareMap.appContext.getResources().getIdentifier("RelativeLayout", "id", hardwareMap.appContext.getPackageName());
-        relativeLayout = ((Activity) hardwareMap.appContext).findViewById(relativeLayoutId);
-
-        distRight = hardwareMap.get(DistanceSensor.class, "rightDistanceSensor");
-
-        // you can also cast this to a Rev2mDistanceSensor if you want to use added
-        // methods associated with the Rev2mDistanceSensor class.
-        Rev2mDistanceSensor sensorTimeOfFlight = (Rev2mDistanceSensor)distRight;
-
-        float[] hsvValues = new float[3];
-        final float values[] = hsvValues;
-
-        // bPrevState and bCurrState keep track of the previous and current state of the button
-        boolean bPrevState = false;
-        boolean bCurrState = false;
-
-        // Get a reference to our sensor object.
-        colorSensor = hardwareMap.get(NormalizedColorSensor.class, "sensor_color");
-
-        // If possible, turn the light on in the beginning (it might already be on anyway,
-        // we just make sure it is if we can).
-        if (colorSensor instanceof SwitchableLight) {
-            ((SwitchableLight)colorSensor).enableLight(true);
-        }
-
-        Orientation angles;
+        foundationLeft.setPosition(0.5f);
+        foundationRight.setPosition(0.5f);
 
         // Wait for the start button to be pressed.
         waitForStart();
 
-        moveInch(34,0.7f,4);
+        moveInch(-20,0.2f,4);
         drive.move(0);
         update();
 
-        sideGrabber.setPosition(0);
+        strafeInch(10,0.5f,7);
 
-        foundationLeft.setPosition(foundationDown);
-        foundationRight.setPosition(foundationDown);
+        moveInch(-14,0.2f,4);
 
-        moveInch(-34,1,3);
-        drive.move("RIGHT",1);
+        drive.move(0);
+        update();
+        foundationLeft.setPosition(0.0f);
+        foundationRight.setPosition(1.0f);
+
+        sleep(1000);
+
+        moveInch(38,0.6f,10);
+
+        drive.move(0);
+        update();
+
+        sleep(500);
+
+        foundationLeft.setPosition(0.5f);
+        foundationRight.setPosition(0.5f);
+
+        sleep(15000);
+
+        strafeInch(-58,1,3);
         update();
 
     }
@@ -397,6 +386,47 @@ public class RedFoundation extends LinearOpMode {
         sensorRotator = hardwareMap.get(ServoImplEx.class, "sensor");
         foundationLeft = hardwareMap.get(ServoImplEx.class, "foundationLeft");
         foundationRight = hardwareMap.get(ServoImplEx.class, "foundationRight");
+    }
+    public void strafeInch(int inches, float speed, float timeout) {
+
+        int motorFrontRightTP = motorFrontRight.getCurrentPosition() + (int)(inches * drive.COUNTS_PER_INCH);
+        int motorBackRightTP = motorBackRight.getCurrentPosition() + (int)(-inches * drive.COUNTS_PER_INCH);
+        int motorFrontLeftTP = motorFrontLeft.getCurrentPosition() + (int)(-inches * drive.COUNTS_PER_INCH);
+        int motorBackLeftTP = motorBackLeft.getCurrentPosition() + (int)(inches * drive.COUNTS_PER_INCH);
+
+        motorFrontRight.setTargetPosition(motorFrontRightTP);
+        motorBackRight.setTargetPosition(motorBackRightTP);
+        motorFrontLeft.setTargetPosition(motorFrontLeftTP);
+        motorBackLeft.setTargetPosition(motorBackLeftTP);
+
+        motorFrontRight.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        motorBackRight.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        motorFrontLeft.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        motorBackLeft.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+
+        this.runtime.reset();
+
+        motorFrontRight.setPower(Math.abs(speed));
+        motorBackRight.setPower(Math.abs(speed));
+        motorFrontLeft.setPower(Math.abs(speed));
+        motorBackLeft.setPower(Math.abs(speed));
+
+
+        while (opModeIsActive() &&
+                (this.runtime.seconds() < timeout) &&
+                (motorFrontRight.isBusy() && motorBackRight.isBusy() && motorFrontLeft.isBusy() && motorBackLeft.isBusy())) {
+
+        }
+
+        motorFrontRight.setPower(0);
+        motorBackRight.setPower(0);
+        motorFrontLeft.setPower(0);
+        motorBackLeft.setPower(0);
+
+        motorFrontRight.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        motorBackRight.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        motorFrontLeft.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        motorBackLeft.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
     }
 
 
