@@ -110,7 +110,7 @@ public class AutoPathing extends LinearOpMode {
     public void runOpMode() {
 
         initIMU();
-        sideGrabber.setPosition(0);
+        sideGrabber.setPosition(0.5f);
         intakeLift.setPosition(1);
 
         distRight = hardwareMap.get(DistanceSensor.class, "rightDistanceSensor");
@@ -187,6 +187,7 @@ public class AutoPathing extends LinearOpMode {
         // Set the position of the Stone Target.  Since it's not fixed in position, assume it's at the field origin.
         // Rotated it to to face forward, and raised it to sit on the ground correctly.
         // This can be used for generic target-centric approach algorithms
+        // which means these settings should be set in place if you want the target to be set as the center of the field origin.
         stoneTarget.setLocation(OpenGLMatrix
                 .translation(0, 0, stoneZ)
                 .multiplied(Orientation.getRotationMatrix(EXTRINSIC, XYZ, DEGREES, 90, 0, -90)));
