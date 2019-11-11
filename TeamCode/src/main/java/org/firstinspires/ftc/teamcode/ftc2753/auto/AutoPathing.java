@@ -1,10 +1,13 @@
 package org.firstinspires.ftc.teamcode.ftc2753.auto;
 
 import com.qualcomm.hardware.bosch.BNO055IMU;
+import com.qualcomm.hardware.rev.Rev2mDistanceSensor;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DistanceSensor;
+import com.qualcomm.robotcore.hardware.Servo;
+import com.qualcomm.robotcore.hardware.ServoImplEx;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.robotcore.external.ClassFactory;
@@ -39,6 +42,11 @@ public class AutoPathing extends LinearOpMode {
 
     private DistanceSensor distRight;
     private DistanceSensor distLeft;
+    private Servo sideGrabber;
+    private Servo sensorRotator;
+    private Servo foundationLeft;
+    private Servo foundationRight;
+    private Servo intakeLift;
 
     DcMotor motorBackLeft;
     DcMotor motorBackRight;
@@ -69,8 +77,8 @@ public class AutoPathing extends LinearOpMode {
 
     // Since ImageTarget trackables use mm to specifiy their dimensions, we must use mm for all the physical dimension.
     // We will define some constants and conversions here
-    private static final float mmPerInch        = 25.4f;
-    private static final float mmTargetHeight   = (6) * mmPerInch;          // the height of the center of the target image above the floor
+    private static final float mmPerInch = 25.4f;
+    private static final float mmTargetHeight = (6) * mmPerInch;          // the height of the center of the target image above the floor
 
     // Constant for Stone Target
     private static final float stoneZ = 2.00f * mmPerInch;
@@ -84,16 +92,16 @@ public class AutoPathing extends LinearOpMode {
 
     // Constants for perimeter targets
     private static final float halfField = 72 * mmPerInch;
-    private static final float quadField  = 36 * mmPerInch;
+    private static final float quadField = 36 * mmPerInch;
 
     // Class Members
     private OpenGLMatrix lastLocation = null;
     private VuforiaLocalizer vuforia = null;
     public boolean targetVisible = false;
     private boolean foundStone = false;
-    private float phoneXRotate    = 0;
-    private float phoneYRotate    = 0;
-    private float phoneZRotate    = 0;
+    private float phoneXRotate = 0;
+    private float phoneYRotate = 0;
+    private float phoneZRotate = 0;
 
     public static double yPos;
     public static double zPos;
@@ -102,9 +110,12 @@ public class AutoPathing extends LinearOpMode {
     public void runOpMode() {
 
         initIMU();
+        sideGrabber.setPosition(0);
+        intakeLift.setPosition(1);
 
-        distRight = hardwareMap.get(DistanceSensor.class, "leftDistanceSensor");
-        distLeft = hardwareMap.get(DistanceSensor.class, "leftDistanceSensor");
+        distRight = hardwareMap.get(DistanceSensor.class, "rightDistanceSensor");
+
+        Rev2mDistanceSensor sensorTimeOfFlight = (Rev2mDistanceSensor)distRight;
 
         // distRight.getDistance(DistanceUnit.MM)
         // distLeft.getDistance(DistanceUnit.MM)
@@ -115,7 +126,7 @@ public class AutoPathing extends LinearOpMode {
         // VuforiaLocalizer.Parameters parameters = new VuforiaLocalizer.Parameters();
 
         parameters.vuforiaLicenseKey = VUFORIA_KEY;
-        parameters.cameraDirection   = CAMERA_CHOICE;
+        parameters.cameraDirection = CAMERA_CHOICE;
 
         //  Instantiate the Vuforia engine
         vuforia = ClassFactory.getInstance().createVuforia(parameters);
@@ -208,7 +219,7 @@ public class AutoPathing extends LinearOpMode {
 
         front1.setLocation(OpenGLMatrix
                 .translation(-halfField, -quadField, mmTargetHeight)
-                .multiplied(Orientation.getRotationMatrix(EXTRINSIC, XYZ, DEGREES, 90, 0 , 90)));
+                .multiplied(Orientation.getRotationMatrix(EXTRINSIC, XYZ, DEGREES, 90, 0, 90)));
 
         front2.setLocation(OpenGLMatrix
                 .translation(-halfField, quadField, mmTargetHeight)
@@ -224,7 +235,7 @@ public class AutoPathing extends LinearOpMode {
 
         rear1.setLocation(OpenGLMatrix
                 .translation(halfField, quadField, mmTargetHeight)
-                .multiplied(Orientation.getRotationMatrix(EXTRINSIC, XYZ, DEGREES, 90, 0 , -90)));
+                .multiplied(Orientation.getRotationMatrix(EXTRINSIC, XYZ, DEGREES, 90, 0, -90)));
 
         rear2.setLocation(OpenGLMatrix
                 .translation(halfField, -quadField, mmTargetHeight)
@@ -253,14 +264,14 @@ public class AutoPathing extends LinearOpMode {
 
         // Rotate the phone vertical about the X axis if it's in portrait mode
         if (PHONE_IS_PORTRAIT) {
-            phoneXRotate = 90 ;
+            phoneXRotate = 90;
         }
 
         // Next, translate the camera lens to where it is on the robot.
         // In this example, it is centered (left to right), but forward of the middle of the robot, and above ground level.
-        final float CAMERA_FORWARD_DISPLACEMENT  = 4.0f * mmPerInch;   // eg: Camera is 4 Inches in front of robot center
+        final float CAMERA_FORWARD_DISPLACEMENT = 4.0f * mmPerInch;   // eg: Camera is 4 Inches in front of robot center
         final float CAMERA_VERTICAL_DISPLACEMENT = 8.0f * mmPerInch;   // eg: Camera is 8 Inches above ground
-        final float CAMERA_LEFT_DISPLACEMENT     = 0;     // eg: Camera is ON the robot's center line
+        final float CAMERA_LEFT_DISPLACEMENT = 0;     // eg: Camera is ON the robot's center line
 
         OpenGLMatrix robotFromCamera = OpenGLMatrix
                 .translation(CAMERA_FORWARD_DISPLACEMENT, CAMERA_LEFT_DISPLACEMENT, CAMERA_VERTICAL_DISPLACEMENT)
@@ -280,13 +291,13 @@ public class AutoPathing extends LinearOpMode {
             // check all the trackable targets to see which one (if any) is visible.
             targetVisible = false;
             for (VuforiaTrackable trackable : allTrackables) {
-                if (((VuforiaTrackableDefaultListener)trackable.getListener()).isVisible()) {
+                if (((VuforiaTrackableDefaultListener) trackable.getListener()).isVisible()) {
                     telemetry.addData("Visible Target", trackable.getName());
                     targetVisible = true;
 
                     // getUpdatedRobotLocation() will return null if no new information is available since
                     // the last time that call was made, or if the trackable is not currently visible.
-                    OpenGLMatrix robotLocationTransform = ((VuforiaTrackableDefaultListener)trackable.getListener()).getUpdatedRobotLocation();
+                    OpenGLMatrix robotLocationTransform = ((VuforiaTrackableDefaultListener) trackable.getListener()).getUpdatedRobotLocation();
                     if (robotLocationTransform != null) {
                         lastLocation = robotLocationTransform;
                     }
@@ -308,11 +319,10 @@ public class AutoPathing extends LinearOpMode {
                 // express the rotation of the robot in degrees.
                 Orientation rotation = Orientation.getOrientation(lastLocation, EXTRINSIC, XYZ, DEGREES);
                 telemetry.addData("Rot (deg)", "{Roll, Pitch, Heading} = %.0f, %.0f, %.0f", rotation.firstAngle, rotation.secondAngle, rotation.thirdAngle);
-            }
-            else {
+            } else {
                 telemetry.addData("Visible Target", "none");
             }
-            telemetry.addData("Y-Position: ",yPos);
+            telemetry.addData("Y-Position: ", yPos);
             telemetry.update();
 
         }
@@ -321,9 +331,9 @@ public class AutoPathing extends LinearOpMode {
 
         setBrake();
 
-        moveInch(-4,1,2);
+        //moveInch(-4,1,2);
 
-        locateSkystone();
+        moveToYCoord();
 
     }
 
@@ -338,11 +348,13 @@ public class AutoPathing extends LinearOpMode {
         motorFrontRight.setDirection(DcMotor.Direction.REVERSE);
 
     }
-    public void locateSkystone() {
+
+    public void moveToYCoord() {
         if (!targetVisible) {
-            moveInch(-3,1,2);
+            moveInch(-3, 1, 2);
+
             if (distRight.getDistance(DistanceUnit.MM) > 500)
-                locateSkystone();
+                moveToYCoord();
             else {
                 while (distRight.getDistance(DistanceUnit.MM) > 10) {
                     drive.move(-1);
@@ -350,16 +362,14 @@ public class AutoPathing extends LinearOpMode {
 
                 }
             }
-        }
-        else if (yPos > 3) {
-            moveInch(2,-2,0.3f,4);
-            moveInch(16, -16, 0.4f,4);
-            moveInch(10,1,2);
-        }
-        else if (yPos < -3) {
-            moveInch(-2,2,0.3f,4);
-            moveInch(16, -16, 0.4f,4);
-            moveInch(10,1,2);
+        } else if (yPos > 3) {
+            moveInch(2, -2, 0.3f, 4);
+            moveInch(16, -16, 0.4f, 4);
+            moveInch(10, 1, 2);
+        } else if (yPos < -3) {
+            moveInch(-2, 2, 0.3f, 4);
+            moveInch(16, -16, 0.4f, 4);
+            moveInch(10, 1, 2);
         }
     }
 
@@ -388,6 +398,14 @@ public class AutoPathing extends LinearOpMode {
 
     }
 
+    public void initServos() {
+        sideGrabber = hardwareMap.get(ServoImplEx.class, "sideGrabber");
+        sensorRotator = hardwareMap.get(ServoImplEx.class, "sensor");
+        foundationLeft = hardwareMap.get(ServoImplEx.class, "foundationLeft");
+        foundationRight = hardwareMap.get(ServoImplEx.class, "foundationRight");
+        intakeLift = hardwareMap.get(ServoImplEx.class, "liftIntake");
+    }
+
     public void stopMove() {
 
         motorFrontLeft.setPower(0);
@@ -396,12 +414,13 @@ public class AutoPathing extends LinearOpMode {
         motorBackRight.setPower(0);
 
     }
-    public void moveInch(int inches, float speed, float timeout) {
 
-        int motorFrontRightTP = motorFrontRight.getCurrentPosition() + (int)(inches * drive.COUNTS_PER_INCH);
-        int motorBackRightTP = motorBackRight.getCurrentPosition() + (int)(inches * drive.COUNTS_PER_INCH);
-        int motorFrontLeftTP = motorFrontLeft.getCurrentPosition() + (int)(inches * drive.COUNTS_PER_INCH);
-        int motorBackLeftTP = motorBackLeft.getCurrentPosition() + (int)(inches * drive.COUNTS_PER_INCH);
+    public void moveInch(int inches, float speed, float timeout) {// moves x inches
+
+        int motorFrontRightTP = motorFrontRight.getCurrentPosition() + (int) (inches * drive.COUNTS_PER_INCH);
+        int motorBackRightTP = motorBackRight.getCurrentPosition() + (int) (inches * drive.COUNTS_PER_INCH);
+        int motorFrontLeftTP = motorFrontLeft.getCurrentPosition() + (int) (inches * drive.COUNTS_PER_INCH);
+        int motorBackLeftTP = motorBackLeft.getCurrentPosition() + (int) (inches * drive.COUNTS_PER_INCH);
 
         motorFrontRight.setTargetPosition(motorFrontRightTP);
         motorBackRight.setTargetPosition(motorBackRightTP);
@@ -437,7 +456,8 @@ public class AutoPathing extends LinearOpMode {
         motorFrontLeft.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         motorBackLeft.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
     }
-    public void turnTo(double angle,BNO055IMU imu) {
+
+    public void turnTo(double angle, BNO055IMU imu) {
 
         Orientation angles;
 
@@ -453,22 +473,22 @@ public class AutoPathing extends LinearOpMode {
                     relativeTarget = Math.PI * 2 - Math.abs(relativeTarget);
             }
             //what is the issue here, it does not want to work on the math.pi nigerian
-            motorFrontRight.setPower((relativeTarget/Math.PI) * Math.abs(relativeTarget/Math.PI));
-            motorBackRight.setPower((relativeTarget/Math.PI) * Math.abs(relativeTarget/Math.PI));
-            motorFrontLeft.setPower(-((relativeTarget/Math.PI) * Math.abs(relativeTarget/Math.PI)));
-            motorBackLeft.setPower(-((relativeTarget/Math.PI) * Math.abs(relativeTarget/Math.PI)));
+            motorFrontRight.setPower((relativeTarget / Math.PI) * Math.abs(relativeTarget / Math.PI));
+            motorBackRight.setPower((relativeTarget / Math.PI) * Math.abs(relativeTarget / Math.PI));
+            motorFrontLeft.setPower(-((relativeTarget / Math.PI) * Math.abs(relativeTarget / Math.PI)));
+            motorBackLeft.setPower(-((relativeTarget / Math.PI) * Math.abs(relativeTarget / Math.PI)));
 
 
         }
 
     }
 
-    public void moveInch(int inchesLeft,int inchesRight, float speed, float timeout) {
+    public void moveInch(int inchesLeft, int inchesRight, float speed, float timeout) {
 
-        int motorFrontRightTP = motorFrontRight.getCurrentPosition() + (int)(inchesRight * drive.COUNTS_PER_INCH);
-        int motorBackRightTP = motorBackRight.getCurrentPosition() + (int)(inchesRight * drive.COUNTS_PER_INCH);
-        int motorFrontLeftTP = motorFrontLeft.getCurrentPosition() + (int)(inchesLeft * drive.COUNTS_PER_INCH);
-        int motorBackLeftTP = motorBackLeft.getCurrentPosition() + (int)(inchesLeft * drive.COUNTS_PER_INCH);
+        int motorFrontRightTP = motorFrontRight.getCurrentPosition() + (int) (inchesRight * drive.COUNTS_PER_INCH);
+        int motorBackRightTP = motorBackRight.getCurrentPosition() + (int) (inchesRight * drive.COUNTS_PER_INCH);
+        int motorFrontLeftTP = motorFrontLeft.getCurrentPosition() + (int) (inchesLeft * drive.COUNTS_PER_INCH);
+        int motorBackLeftTP = motorBackLeft.getCurrentPosition() + (int) (inchesLeft * drive.COUNTS_PER_INCH);
 
         motorFrontRight.setTargetPosition(motorFrontRightTP);
         motorBackRight.setTargetPosition(motorBackRightTP);
@@ -504,6 +524,7 @@ public class AutoPathing extends LinearOpMode {
         motorFrontLeft.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         motorBackLeft.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
     }
+
     public void initIMU() {
         BNO055IMU imu;
 
@@ -518,7 +539,37 @@ public class AutoPathing extends LinearOpMode {
         imu.initialize(IMUparameters);
     }
 
+    public void strafeInch(int inches, float speed, float timeout) {
+
+        int motorFrontRightTP = motorFrontRight.getCurrentPosition() + (int) (inches * drive.COUNTS_PER_INCH);
+        int motorBackRightTP = motorBackRight.getCurrentPosition() + (int) (-inches * drive.COUNTS_PER_INCH);
+        int motorFrontLeftTP = motorFrontLeft.getCurrentPosition() + (int) (-inches * drive.COUNTS_PER_INCH);
+        int motorBackLeftTP = motorBackLeft.getCurrentPosition() + (int) (inches * drive.COUNTS_PER_INCH);
+
+        motorFrontRight.setTargetPosition(motorFrontRightTP);
+        motorBackRight.setTargetPosition(motorBackRightTP);
+        motorFrontLeft.setTargetPosition(motorFrontLeftTP);
+        motorBackLeft.setTargetPosition(motorBackLeftTP);
+
+        motorFrontRight.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        motorBackRight.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        motorFrontLeft.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        motorBackLeft.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+
+        this.runtime.reset();
+
+        motorFrontRight.setPower(Math.abs(speed));
+        motorBackRight.setPower(Math.abs(speed));
+        motorFrontLeft.setPower(Math.abs(speed));
+        motorBackLeft.setPower(Math.abs(speed));
 
 
+        while (opModeIsActive() &&
+                (this.runtime.seconds() < timeout) &&
+                (motorFrontRight.isBusy() && motorBackRight.isBusy() && motorFrontLeft.isBusy() && motorBackLeft.isBusy())) {
 
+        }
+
+
+    }
 }
