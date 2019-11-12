@@ -16,6 +16,7 @@ import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.hardware.ServoImplEx;
 import com.qualcomm.robotcore.hardware.SwitchableLight;
 import com.qualcomm.robotcore.util.ElapsedTime;
+import com.qualcomm.robotcore.util.Range;
 
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
@@ -23,6 +24,8 @@ import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
 import org.firstinspires.ftc.teamcode.ftc2753.subsystems.DriveTrain;
+import com.qualcomm.hardware.modernrobotics.ModernRoboticsI2cGyro;
+
 
 import static org.firstinspires.ftc.robotcore.external.navigation.AxesOrder.XYZ;
 
@@ -34,6 +37,8 @@ public class RedFoundation extends LinearOpMode {
 
     private ElapsedTime runtime = new ElapsedTime();
     private ElapsedTime waittime = new ElapsedTime();
+
+    BNO055IMU imu;
 
     private DistanceSensor distRight;
     private DistanceSensor distLeft;
@@ -57,6 +62,8 @@ public class RedFoundation extends LinearOpMode {
 
     private float intakeSpeed;
 
+    Orientation angles;
+
     /*
     note that with the config annotation above public class Teleop2,
     the below public static non-final variables can be edited on the fly with FTC Dashboard
@@ -71,6 +78,11 @@ public class RedFoundation extends LinearOpMode {
     public static double foundationDown = 0;
     public static double foundationDiagnostic = 0.5;
 
+    static final double     P_TURN_COEFF            = 0.1;     // Larger is more responsive, but also less stable
+    static final double     P_DRIVE_COEFF           = 0.15;     // Larger is more responsive, but also less stable
+    static final double     HEADING_THRESHOLD       = 1 ;      // As tight as we can make it with an integer gyro
+
+
     NormalizedColorSensor colorSensor;
     /** The relativeLayout field is used to aid in providing interesting visual feedback
      * in this sample application; you probably *don't* need something analogous when you
@@ -81,7 +93,7 @@ public class RedFoundation extends LinearOpMode {
 
         initMotors();
         initServos();
-        BNO055IMU imu = initIMU();
+        initIMU();
 
         foundationLeft.setPosition(0.5f);
         foundationRight.setPosition(0.5f);
@@ -104,7 +116,15 @@ public class RedFoundation extends LinearOpMode {
 
         sleep(1000);
 
-        moveInch(38,0.6f,10);
+        moveInch(30,0.6f,10);
+
+        strafeInch(8,0.6f,3);
+
+        gyroTurn(0.4f,90);
+
+        moveInch(-6,0.4f,2);
+
+        strafeInch(12,0.6f,2);
 
         drive.move(0);
         update();
@@ -114,9 +134,11 @@ public class RedFoundation extends LinearOpMode {
         foundationLeft.setPosition(0.5f);
         foundationRight.setPosition(0.5f);
 
+        strafeInch(12,0.6f,3);
+
         sleep(15000);
 
-        strafeInch(-58,1,3);
+        moveInch(34,1,3);
         update();
 
     }
@@ -274,8 +296,7 @@ public class RedFoundation extends LinearOpMode {
         motorFrontLeft.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         motorBackLeft.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
     }
-    public BNO055IMU initIMU() {
-        BNO055IMU imu;
+    public void initIMU() {
 
         BNO055IMU.Parameters IMUparameters = new BNO055IMU.Parameters();
         IMUparameters.angleUnit = BNO055IMU.AngleUnit.DEGREES;
@@ -287,7 +308,6 @@ public class RedFoundation extends LinearOpMode {
         imu = hardwareMap.get(BNO055IMU.class, "imu");
         imu.initialize(IMUparameters);
 
-        return imu;
     }
 
     //Everything after this is copied
@@ -427,6 +447,118 @@ public class RedFoundation extends LinearOpMode {
         motorBackRight.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         motorFrontLeft.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         motorBackLeft.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+    }
+    public void gyroTurn (  double speed, double angle) {
+
+        // keep looping while we are still active, and not on heading.
+        angles = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
+        while (opModeIsActive() && !onHeading(speed, angle, P_TURN_COEFF, angles)) {
+            // Update telemetry & Allow time for other processes to run.
+            telemetry.update();
+            angles = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
+        }
+    }
+
+    /**
+     *  Method to obtain & hold a heading for a finite amount of time
+     *  Move will stop once the requested time has elapsed
+     *
+     * @param speed      Desired speed of turn.
+     * @param angle      Absolute Angle (in Degrees) relative to last gyro reset.
+     *                   0 = fwd. +ve is CCW from fwd. -ve is CW from forward.
+     *                   If a relative angle is required, add/subtract from current heading.
+     * @param holdTime   Length of time (in seconds) to hold the specified heading.
+     */
+    public void gyroHold( double speed, double angle, double holdTime) {
+
+        ElapsedTime holdTimer = new ElapsedTime();
+
+        // keep looping while we have time remaining.
+        holdTimer.reset();
+        while (opModeIsActive() && (holdTimer.time() < holdTime)) {
+            // Update telemetry & Allow time for other processes to run.
+            onHeading(speed, angle, P_TURN_COEFF, angles);
+            telemetry.update();
+        }
+
+        // Stop all motion;
+        motorBackLeft.setPower(0);
+        motorFrontLeft.setPower(0);
+        motorBackRight.setPower(0);
+        motorFrontRight.setPower(0);
+    }
+
+    /**
+     * Perform one cycle of closed loop heading control.
+     *
+     * @param speed     Desired speed of turn.
+     * @param angle     Absolute Angle (in Degrees) relative to last gyro reset.
+     *                  0 = fwd. +ve is CCW from fwd. -ve is CW from forward.
+     *                  If a relative angle is required, add/subtract from current heading.
+     * @param PCoeff    Proportional Gain coefficient
+     * @return
+     */
+    boolean onHeading(double speed, double angle, double PCoeff, Orientation angles) {
+        double   error ;
+        double   steer ;
+        boolean  onTarget = false ;
+        double leftSpeed;
+        double rightSpeed;
+
+        // determine turn power based on +/- error
+        error = getError(angle,angles);
+
+        if (Math.abs(error) <= HEADING_THRESHOLD) {
+            steer = 0.0;
+            leftSpeed  = 0.0;
+            rightSpeed = 0.0;
+            onTarget = true;
+        }
+        else {
+            steer = getSteer(error, PCoeff);
+            rightSpeed  = speed * steer;
+            leftSpeed   = -rightSpeed;
+        }
+
+        // Send desired speeds to motors.
+        motorBackLeft.setPower(leftSpeed);
+        motorFrontLeft.setPower(leftSpeed);
+        motorBackRight.setPower(rightSpeed);
+        motorFrontRight.setPower(rightSpeed);
+
+        // Display it for the driver.
+        telemetry.addData("Target", "%5.2f", angle);
+        telemetry.addData("Err/St", "%5.2f/%5.2f", error, steer);
+        telemetry.addData("Speed.", "%5.2f:%5.2f", leftSpeed, rightSpeed);
+
+        return onTarget;
+    }
+
+    /**
+     * getError determines the error between the target angle and the robot's current heading
+     * @param   targetAngle  Desired angle (relative to global reference established at last Gyro Reset).
+     * @return  error angle: Degrees in the range +/- 180. Centered on the robot's frame of reference
+     *          +ve error means the robot should turn LEFT (CCW) to reduce error.
+     */
+    public double getError(double targetAngle, Orientation angles) {
+
+        double robotError;
+
+        // calculate error in -179 to +180 range  (
+        robotError = targetAngle - angles.firstAngle;
+        while (robotError > 180)  robotError -= 360;
+        while (robotError <= -180) robotError += 360;
+        return robotError;
+    }
+
+    /**
+     * returns desired steering force.  +/- 1 range.  +ve = steer left
+     * @param error   Error angle in robot relative degrees
+     * @param PCoeff  Proportional Gain Coefficient
+     * @return
+     */
+    public double getSteer(double error, double PCoeff) {
+        return Range.clip(error * PCoeff, -1, 1);
     }
 
 
