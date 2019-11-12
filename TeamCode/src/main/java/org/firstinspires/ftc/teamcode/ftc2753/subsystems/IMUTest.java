@@ -1,34 +1,34 @@
-package org.firstinspires.ftc.teamcode.ftc2753.auto;
+package org.firstinspires.ftc.teamcode.ftc2753.subsystems;
 
-import android.app.Activity;
-import android.graphics.Color;
 import android.view.View;
 
 import com.qualcomm.hardware.bosch.BNO055IMU;
-import com.qualcomm.hardware.rev.Rev2mDistanceSensor;
+import com.qualcomm.hardware.bosch.JustLoggingAccelerationIntegrator;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DistanceSensor;
 import com.qualcomm.robotcore.hardware.NormalizedColorSensor;
-import com.qualcomm.robotcore.hardware.NormalizedRGBA;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.hardware.ServoImplEx;
-import com.qualcomm.robotcore.hardware.SwitchableLight;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
+import org.firstinspires.ftc.robotcore.external.navigation.Acceleration;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
-import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
+import org.firstinspires.ftc.robotcore.external.navigation.Position;
+import org.firstinspires.ftc.robotcore.external.navigation.Velocity;
 import org.firstinspires.ftc.teamcode.ftc2753.subsystems.DriveTrain;
 
 import static org.firstinspires.ftc.robotcore.external.navigation.AxesOrder.XYZ;
 
-@Autonomous(name="Blue Foundation", group="auto")
+public class IMUTest extends LinearOpMode {
 
-public class BlueFoundation extends LinearOpMode {
+
+    @Autonomous(name = "Blue Foundation", group = "auto")
+
 
     DriveTrain drive = new DriveTrain();
 
@@ -48,8 +48,8 @@ public class BlueFoundation extends LinearOpMode {
     boolean wasYDown = false;
 
     boolean targetFound = false;
-    Orientation             lastAngles = new Orientation();
-    double                  globalAngle, power = .30, correction;
+    Orientation lastAngles = new Orientation();
+    double globalAngle, power = .30, correction;
 
     private Servo sensorRotator;
     private Servo foundationLeft;
@@ -62,8 +62,8 @@ public class BlueFoundation extends LinearOpMode {
     the below public static non-final variables can be edited on the fly with FTC Dashboard
     */
     //sideUp and sideDown are used for both the stone side grabber and the sensor array actuator
-    public static double sideUp = 180/270;
-    public static double sideDown = 0/270;
+    public static double sideUp = 180 / 270;
+    public static double sideDown = 0 / 270;
     public static double grabberDiagnostic = 0.5; //grabber is in continuous mode rn
 
     //values for the foundation grabber servos; note foundationGrab() and foundationRelease() methods
@@ -72,9 +72,11 @@ public class BlueFoundation extends LinearOpMode {
     public static double foundationDiagnostic = 0.5;
 
     NormalizedColorSensor colorSensor;
-    /** The relativeLayout field is used to aid in providing interesting visual feedback
+    /**
+     * The relativeLayout field is used to aid in providing interesting visual feedback
      * in this sample application; you probably *don't* need something analogous when you
-     * use a color sensor on your robot */
+     * use a color sensor on your robot
+     */
     View relativeLayout;
 
     public void runOpMode() throws InterruptedException {
@@ -82,13 +84,36 @@ public class BlueFoundation extends LinearOpMode {
         initMotors();
         initServos();
         BNO055IMU imu = initIMU();
+        // Set up the parameters with which we will use our IMU. Note that integration
+        // algorithm here just reports accelerations to the logcat log; it doesn't actually
+        // provide positional information.
+        BNO055IMU.Parameters parameters = new BNO055IMU.Parameters();
+        parameters.angleUnit = BNO055IMU.AngleUnit.DEGREES;
+        parameters.accelUnit = BNO055IMU.AccelUnit.METERS_PERSEC_PERSEC;
+        parameters.calibrationDataFile = "BNO055IMUCalibration.json"; // see the calibration sample opmode
+        parameters.loggingEnabled = true;
+        parameters.loggingTag = "IMU";
+        parameters.accelerationIntegrationAlgorithm = new JustLoggingAccelerationIntegrator();
+
+        // Retrieve and initialize the IMU. We expect the IMU to be attached to an I2C port
+        // on a Core Device Interface Module, configured to be a sensor of type "AdaFruit IMU",
+        // and named "imu".
+        imu = hardwareMap.get(BNO055IMU.class, "imu");
+        imu.initialize(parameters);
+
 
         foundationLeft.setPosition(0.5f);
         foundationRight.setPosition(0.5f);
 
         // Wait for the start button to be pressed.
         waitForStart();
-
+        // Start the logging of measured acceleration
+        imu.startAccelerationIntegration(new Position(), new Velocity(), 1000);
+        turnTo(80, imu);
+        // Loop and update the dashboard
+        /*while (opModeIsActive()) { COMMENTED OUT COMMENT BACK IN
+            telemetry.update();
+        }
         moveInch(-20,0.2f,4);
         drive.move(0);
         update();
@@ -117,6 +142,8 @@ public class BlueFoundation extends LinearOpMode {
         sleep(15000);
 
         strafeInch(58,1,3);
+
+         */
         update();
 
     }
@@ -166,12 +193,13 @@ public class BlueFoundation extends LinearOpMode {
         motorBackRight.setPower(0);
 
     }
+
     public void moveInch(int inches, float speed, float timeout) {
 
-        int motorFrontRightTP = motorFrontRight.getCurrentPosition() + (int)(inches * drive.COUNTS_PER_INCH);
-        int motorBackRightTP = motorBackRight.getCurrentPosition() + (int)(inches * drive.COUNTS_PER_INCH);
-        int motorFrontLeftTP = motorFrontLeft.getCurrentPosition() + (int)(inches * drive.COUNTS_PER_INCH);
-        int motorBackLeftTP = motorBackLeft.getCurrentPosition() + (int)(inches * drive.COUNTS_PER_INCH);
+        int motorFrontRightTP = motorFrontRight.getCurrentPosition() + (int) (inches * drive.COUNTS_PER_INCH);
+        int motorBackRightTP = motorBackRight.getCurrentPosition() + (int) (inches * drive.COUNTS_PER_INCH);
+        int motorFrontLeftTP = motorFrontLeft.getCurrentPosition() + (int) (inches * drive.COUNTS_PER_INCH);
+        int motorBackLeftTP = motorBackLeft.getCurrentPosition() + (int) (inches * drive.COUNTS_PER_INCH);
 
         motorFrontRight.setTargetPosition(motorFrontRightTP);
         motorBackRight.setTargetPosition(motorBackRightTP);
@@ -207,7 +235,8 @@ public class BlueFoundation extends LinearOpMode {
         motorFrontLeft.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         motorBackLeft.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
     }
-    public void turnTo(double angle,BNO055IMU imu) {
+
+    public void turnTo(double angle, BNO055IMU imu) {
 
         Orientation angles;
 
@@ -222,23 +251,23 @@ public class BlueFoundation extends LinearOpMode {
                 else if (relativeTarget < 0)
                     relativeTarget = Math.PI * 2 - Math.abs(relativeTarget);
             }
-            //what is the issue here, it does not want to work on the math.pi nigerian
-            motorFrontRight.setPower((relativeTarget/Math.PI) * Math.abs(relativeTarget/Math.PI));
-            motorBackRight.setPower((relativeTarget/Math.PI) * Math.abs(relativeTarget/Math.PI));
-            motorFrontLeft.setPower(-((relativeTarget/Math.PI) * Math.abs(relativeTarget/Math.PI)));
-            motorBackLeft.setPower(-((relativeTarget/Math.PI) * Math.abs(relativeTarget/Math.PI)));
+
+            motorFrontRight.setPower((relativeTarget / Math.PI) * Math.abs(relativeTarget / Math.PI));
+            motorBackRight.setPower((relativeTarget / Math.PI) * Math.abs(relativeTarget / Math.PI));
+            motorFrontLeft.setPower(-((relativeTarget / Math.PI) * Math.abs(relativeTarget / Math.PI)));
+            motorBackLeft.setPower(-((relativeTarget / Math.PI) * Math.abs(relativeTarget / Math.PI)));
 
 
         }
 
     }
 
-    public void moveInch(int inchesLeft,int inchesRight, float speed, float timeout) {
+    public void moveInch(int inchesLeft, int inchesRight, float speed, float timeout) {
 
-        int motorFrontRightTP = motorFrontRight.getCurrentPosition() + (int)(inchesRight * drive.COUNTS_PER_INCH);
-        int motorBackRightTP = motorBackRight.getCurrentPosition() + (int)(inchesRight * drive.COUNTS_PER_INCH);
-        int motorFrontLeftTP = motorFrontLeft.getCurrentPosition() + (int)(inchesLeft * drive.COUNTS_PER_INCH);
-        int motorBackLeftTP = motorBackLeft.getCurrentPosition() + (int)(inchesLeft * drive.COUNTS_PER_INCH);
+        int motorFrontRightTP = motorFrontRight.getCurrentPosition() + (int) (inchesRight * drive.COUNTS_PER_INCH);
+        int motorBackRightTP = motorBackRight.getCurrentPosition() + (int) (inchesRight * drive.COUNTS_PER_INCH);
+        int motorFrontLeftTP = motorFrontLeft.getCurrentPosition() + (int) (inchesLeft * drive.COUNTS_PER_INCH);
+        int motorBackLeftTP = motorBackLeft.getCurrentPosition() + (int) (inchesLeft * drive.COUNTS_PER_INCH);
 
         motorFrontRight.setTargetPosition(motorFrontRightTP);
         motorBackRight.setTargetPosition(motorBackRightTP);
@@ -274,25 +303,17 @@ public class BlueFoundation extends LinearOpMode {
         motorFrontLeft.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         motorBackLeft.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
     }
+
     public BNO055IMU initIMU() {
         BNO055IMU imu;
-
-        BNO055IMU.Parameters IMUparameters = new BNO055IMU.Parameters();
-        IMUparameters.angleUnit = BNO055IMU.AngleUnit.DEGREES;
-        IMUparameters.accelUnit = BNO055IMU.AccelUnit.METERS_PERSEC_PERSEC;
-        IMUparameters.calibrationDataFile = "BNO055IMUCalibration.json";
-        IMUparameters.loggingEnabled = true;
-        IMUparameters.loggingTag = "IMU";
-
+        Orientation angles;
+        Acceleration gravity;
         imu = hardwareMap.get(BNO055IMU.class, "imu");
-        imu.initialize(IMUparameters);
-
         return imu;
     }
 
     //Everything after this is copied
-    private void resetAngle(BNO055IMU imu)
-    {
+    private void resetAngle(BNO055IMU imu) {
         lastAngles = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
 
         globalAngle = 0;
@@ -300,10 +321,10 @@ public class BlueFoundation extends LinearOpMode {
 
     /**
      * Get current cumulative angle rotation from last reset.
+     *
      * @return Angle in degrees. + = left, - = right.
      */
-    private double getAngle(BNO055IMU imu)
-    {
+    private double getAngle(BNO055IMU imu) {
         // We experimentally determined the Z axis is the axis we want to use for heading angle.
         // We have to process the angle because the imu works in euler angles so the Z axis is
         // returned as 0 to +180 or 0 to -180 rolling back to -179 or +179 when rotation passes
@@ -327,12 +348,12 @@ public class BlueFoundation extends LinearOpMode {
 
     /**
      * See if we are moving in a straight line and if not return a power correction value.
+     *
      * @return Power adjustment, + is adjust left - is adjust right.
      */
 
-    private void rotate(int degrees, double power,BNO055IMU imu)
-    {
-        double  leftPower, rightPower;
+    private void rotate(int degrees, double power, BNO055IMU imu) {
+        double leftPower, rightPower;
 
         // restart imu movement tracking.
         resetAngle(imu);
@@ -340,17 +361,13 @@ public class BlueFoundation extends LinearOpMode {
         // getAngle() returns + when rotating counter clockwise (left) and - when rotating
         // clockwise (right).
 
-        if (degrees < 0)
-        {   // turn right.
+        if (degrees < 0) {   // turn right.
             leftPower = power;
             rightPower = -power;
-        }
-        else if (degrees > 0)
-        {   // turn left.
+        } else if (degrees > 0) {   // turn left.
             leftPower = -power;
             rightPower = power;
-        }
-        else return;
+        } else return;
 
         // set power to rotate.
         motorBackLeft.setPower(leftPower);
@@ -359,15 +376,16 @@ public class BlueFoundation extends LinearOpMode {
         motorFrontRight.setPower(rightPower);
 
         // rotate until turn is completed.
-        if (degrees < 0)
-        {
+        if (degrees < 0) {
             // On right turn we have to get off zero first.
-            while (opModeIsActive() && getAngle(imu) == 0) {}
+            while (opModeIsActive() && getAngle(imu) == 0) {
+            }
 
-            while (opModeIsActive() && getAngle(imu) > degrees) {}
-        }
-        else    // left turn.
-            while (opModeIsActive() && getAngle(imu) < degrees) {}
+            while (opModeIsActive() && getAngle(imu) > degrees) {
+            }
+        } else    // left turn.
+            while (opModeIsActive() && getAngle(imu) < degrees) {
+            }
 
         // turn the motors off.
         motorBackLeft.setPower(0);
@@ -381,18 +399,20 @@ public class BlueFoundation extends LinearOpMode {
         // reset angle tracking on new heading.
         resetAngle(imu);
     }
-    public void initServos(){
+
+    public void initServos() {
         sideGrabber = hardwareMap.get(ServoImplEx.class, "sideGrabber");
         sensorRotator = hardwareMap.get(ServoImplEx.class, "sensor");
         foundationLeft = hardwareMap.get(ServoImplEx.class, "foundationLeft");
         foundationRight = hardwareMap.get(ServoImplEx.class, "foundationRight");
     }
+
     public void strafeInch(int inches, float speed, float timeout) {
 
-        int motorFrontRightTP = motorFrontRight.getCurrentPosition() + (int)(inches * drive.COUNTS_PER_INCH);
-        int motorBackRightTP = motorBackRight.getCurrentPosition() + (int)(-inches * drive.COUNTS_PER_INCH);
-        int motorFrontLeftTP = motorFrontLeft.getCurrentPosition() + (int)(-inches * drive.COUNTS_PER_INCH);
-        int motorBackLeftTP = motorBackLeft.getCurrentPosition() + (int)(inches * drive.COUNTS_PER_INCH);
+        int motorFrontRightTP = motorFrontRight.getCurrentPosition() + (int) (inches * drive.COUNTS_PER_INCH);
+        int motorBackRightTP = motorBackRight.getCurrentPosition() + (int) (-inches * drive.COUNTS_PER_INCH);
+        int motorFrontLeftTP = motorFrontLeft.getCurrentPosition() + (int) (-inches * drive.COUNTS_PER_INCH);
+        int motorBackLeftTP = motorBackLeft.getCurrentPosition() + (int) (inches * drive.COUNTS_PER_INCH);
 
         motorFrontRight.setTargetPosition(motorFrontRightTP);
         motorBackRight.setTargetPosition(motorBackRightTP);
@@ -430,7 +450,5 @@ public class BlueFoundation extends LinearOpMode {
     }
 
 
-
-
-
+}
 }

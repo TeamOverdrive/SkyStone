@@ -128,6 +128,7 @@ public class AutoPathing extends LinearOpMode {
         parameters.vuforiaLicenseKey = VUFORIA_KEY;
         parameters.cameraDirection = CAMERA_CHOICE;
 
+
         //  Instantiate the Vuforia engine
         vuforia = ClassFactory.getInstance().createVuforia(parameters);
 
@@ -364,13 +365,19 @@ public class AutoPathing extends LinearOpMode {
                 }
             }
         } else if (yPos > 3) {
+
+            /*
             moveInch(2, -2, 0.3f, 4);
             moveInch(16, -16, 0.4f, 4);
             moveInch(10, 1, 2);
+
+             */
         } else if (yPos < -3) {
-            moveInch(-2, 2, 0.3f, 4);
+            /*moveInch(-2, 2, 0.3f, 4);
             moveInch(16, -16, 0.4f, 4);
             moveInch(10, 1, 2);
+
+             */
         }
     }
 
