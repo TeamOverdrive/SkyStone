@@ -110,8 +110,7 @@ public class AutoPathing extends LinearOpMode {
     public void runOpMode() {
 
         initIMU();
-        sideGrabber.setPosition(0.5f);
-        intakeLift.setPosition(1);
+
 
         distRight = hardwareMap.get(DistanceSensor.class, "rightDistanceSensor");
 
