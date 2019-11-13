@@ -4,7 +4,6 @@ import android.app.Activity;
 import android.graphics.Color;
 import android.view.View;
 
-import com.acmerobotics.dashboard.config.Config;
 import com.qualcomm.hardware.bosch.BNO055IMU;
 import com.qualcomm.hardware.rev.Rev2mDistanceSensor;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
@@ -17,6 +16,7 @@ import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.hardware.ServoImplEx;
 import com.qualcomm.robotcore.hardware.SwitchableLight;
 import com.qualcomm.robotcore.util.ElapsedTime;
+import com.qualcomm.robotcore.util.Range;
 
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
@@ -24,18 +24,21 @@ import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
 import org.firstinspires.ftc.teamcode.ftc2753.subsystems.DriveTrain;
+import com.qualcomm.hardware.modernrobotics.ModernRoboticsI2cGyro;
+
 
 import static org.firstinspires.ftc.robotcore.external.navigation.AxesOrder.XYZ;
 
-@Config
-@Autonomous(name="Red Skystone", group="auto")
+@Autonomous(name="Red Foundation", group="auto")
 
-public class SensorTest extends LinearOpMode {
+public class RedFoundation extends LinearOpMode {
 
     DriveTrain drive = new DriveTrain();
 
     private ElapsedTime runtime = new ElapsedTime();
     private ElapsedTime waittime = new ElapsedTime();
+
+    BNO055IMU imu;
 
     private DistanceSensor distRight;
     private DistanceSensor distLeft;
@@ -46,21 +49,39 @@ public class SensorTest extends LinearOpMode {
     DcMotor motorFrontRight;
 
     private Servo sideGrabber;
-    private Servo sensorRotator;
-    private Servo foundationLeft;
-    private Servo foundationRight;
-    private Servo intakeLift;
-
-    int position;
-
-    public static double GRABBERUP = 0.66;
-    public static double GRABBERDOWN = 0.8;
 
     boolean wasYDown = false;
 
     boolean targetFound = false;
     Orientation             lastAngles = new Orientation();
     double                  globalAngle, power = .30, correction;
+
+    private Servo sensorRotator;
+    private Servo foundationLeft;
+    private Servo foundationRight;
+
+    private float intakeSpeed;
+
+    Orientation angles;
+
+    /*
+    note that with the config annotation above public class Teleop2,
+    the below public static non-final variables can be edited on the fly with FTC Dashboard
+    */
+    //sideUp and sideDown are used for both the stone side grabber and the sensor array actuator
+    public static double sideUp = 180/270;
+    public static double sideDown = 0/270;
+    public static double grabberDiagnostic = 0.5; //grabber is in continuous mode rn
+
+    //values for the foundation grabber servos; note foundationGrab() and foundationRelease() methods
+    public static double foundationUp = 1;
+    public static double foundationDown = 0;
+    public static double foundationDiagnostic = 0.5;
+
+    static final double     P_TURN_COEFF            = 0.1;     // Larger is more responsive, but also less stable
+    static final double     P_DRIVE_COEFF           = 0.15;     // Larger is more responsive, but also less stable
+    static final double     HEADING_THRESHOLD       = 1 ;      // As tight as we can make it with an integer gyro
+
 
     NormalizedColorSensor colorSensor;
     /** The relativeLayout field is used to aid in providing interesting visual feedback
@@ -72,167 +93,55 @@ public class SensorTest extends LinearOpMode {
 
         initMotors();
         initServos();
+        initIMU();
 
-        sideGrabber.setPosition(0.5f);
-        intakeLift.setPosition(1);
-
-
-
-        int relativeLayoutId = hardwareMap.appContext.getResources().getIdentifier("RelativeLayout", "id", hardwareMap.appContext.getPackageName());
-        relativeLayout = ((Activity) hardwareMap.appContext).findViewById(relativeLayoutId);
-
-        distRight = hardwareMap.get(DistanceSensor.class, "rightDistanceSensor");
-
-        // you can also cast this to a Rev2mDistanceSensor if you want to use added
-        // methods associated with the Rev2mDistanceSensor class.
-        Rev2mDistanceSensor sensorTimeOfFlight = (Rev2mDistanceSensor)distRight;
-
-        float[] hsvValues = new float[3];
-        final float values[] = hsvValues;
-
-        // bPrevState and bCurrState keep track of the previous and current state of the button
-        boolean bPrevState = false;
-        boolean bCurrState = false;
-
-        // Get a reference to our sensor object.
-        colorSensor = hardwareMap.get(NormalizedColorSensor.class, "sensor_color");
-
-        // If possible, turn the light on in the beginning (it might already be on anyway,
-        // we just make sure it is if we can).
-        if (colorSensor instanceof SwitchableLight) {
-            ((SwitchableLight)colorSensor).enableLight(true);
-        }
-
-        Orientation angles;
+        foundationLeft.setPosition(0.5f);
+        foundationRight.setPosition(0.5f);
 
         // Wait for the start button to be pressed.
         waitForStart();
 
-        strafeInch(24,0.95f,7);
+        moveInch(-20,0.2f,4);
+        drive.move(0);
+        update();
 
-        moveInch(-28,1,2);
+        strafeInch(10,0.5f,7);
 
-        strafeInch(9,0.95f,7);
-        while (distRight.getDistance(DistanceUnit.MM) > 85) {
-            drive.move("LEFT",0.2f);
-            update();
-        }
+        moveInch(-14,0.2f,4);
+
+        drive.move(0);
+        update();
+        foundationLeft.setPosition(0.0f);
+        foundationRight.setPosition(1.0f);
+
+        sleep(1000);
+
+        moveInch(30,0.6f,10);
+
+        strafeInch(8,0.6f,3);
+
+        gyroTurn(0.4f,90);
+
+        moveInch(-6,0.4f,2);
+
+        strafeInch(12,0.6f,2);
 
         drive.move(0);
         update();
 
         sleep(500);
 
-        moveInch(14,0.8f,3);
+        foundationLeft.setPosition(0.5f);
+        foundationRight.setPosition(0.5f);
 
-        runtime.reset();
+        strafeInch(12,0.6f,3);
 
-        while (!targetFound) {
+        sleep(15000);
 
-            NormalizedRGBA colors = colorSensor.getNormalizedColors();
-
-            /** Use telemetry to display feedback on the driver station. We show the conversion
-             * of the colors to hue, saturation and value, and display the the normalized values
-             * as returned from the sensor.
-             * @see <a href="http://infohost.nmt.edu/tcc/help/pubs/colortheory/web/hsv.html">HSV</a>*/
-
-            Color.colorToHSV(colors.toColor(), hsvValues);
-            telemetry.addLine()
-                    .addData("H", "%.3f", hsvValues[0])
-                    .addData("S", "%.3f", hsvValues[1])
-                    .addData("V", "%.3f", hsvValues[2]);
-            telemetry.addLine()
-                    .addData("a", "%.3f", colors.alpha)
-                    .addData("r", "%.3f", colors.red)
-                    .addData("g", "%.3f", colors.green)
-                    .addData("b", "%.3f", colors.blue);
-
-            /** We also display a conversion of the colors to an equivalent Android color integer.
-             * @see Color */
-            int color = colors.toColor();
-            telemetry.addLine("raw Android color: ")
-                    .addData("a", "%02x", Color.alpha(color))
-                    .addData("r", "%02x", Color.red(color))
-                    .addData("g", "%02x", Color.green(color))
-                    .addData("b", "%02x", Color.blue(color));
-            telemetry.addData("RightDist: ", distRight.getDistance(DistanceUnit.MM));
-            if (Color.red((color)) > 14) {
-                telemetry.addLine("Nope");
-            } else {
-                telemetry.addLine("Skystone");
-            }
-            if (Color.red((color)) > 0) {
-                drive.move(0.1f);
-                update();
-            } else {
-                drive.move(0);
-                update();
-                targetFound = true;
-
-            }
-
-
-            // Balance the colors. The values returned by getColors() are normalized relative to the
-            // maximum possible values that the sensor can measure. For example, a sensor might in a
-            // particular configuration be able to internally measure color intensity in a range of
-            // [0, 10240]. In such a case, the values returned by getColors() will be divided by 10240
-            // so as to return a value it the range [0,1]. However, and this is the point, even so, the
-            // values we see here may not get close to 1.0 in, e.g., low light conditions where the
-            // sensor measurements don't approach their maximum limit. In such situations, the *relative*
-            // intensities of the colors are likely what is most interesting. Here, for example, we boost
-            // the signal on the colors while maintaining their relative balance so as to give more
-            // vibrant visual feedback on the robot controller visual display.
-            float max = Math.max(Math.max(Math.max(colors.red, colors.green), colors.blue), colors.alpha);
-            colors.red   /= max;
-            colors.green /= max;
-            colors.blue  /= max;
-            color = colors.toColor();
-
-            telemetry.addLine("normalized color:  ")
-                    .addData("a", "%02x", Color.alpha(color))
-                    .addData("r", "%02x", Color.red(color))
-                    .addData("g", "%02x", Color.green(color))
-                    .addData("b", "%02x", Color.blue(color));
-            telemetry.update();
-        }
-        if (runtime.seconds() < 0.3) {
-            position = 1;
-        } else if (runtime.seconds() < 0.6) {
-            position = 2;
-        } else {
-            position = 3;
-        }
-        moveInch(9,0.2f,5);
-
-        // sleep(1000);
-
-        strafeInch(3,0.3f,1);
-
-        sideGrabber.setPosition(0);
-
-        sleep(1000);
-
-        strafeInch(-18,0.3f,100);
-
-        moveInch(65,0.5f,100);
-
-        sideGrabber.setPosition(0.5f);
-
-        sleep(1000);
-
-        moveInch(-105,0.4f,100);
-
-        moveInch(58,0.6f,100);
-
-        strafeInch(18,0.1f,3);
-
-        telemetry.addData("Position: ", position);
-        telemetry.update();
-
-        sleep(10000);
+        moveInch(34,1,3);
+        update();
 
     }
-
 
     public void initMotors() {
 
@@ -281,11 +190,6 @@ public class SensorTest extends LinearOpMode {
     }
     public void moveInch(int inches, float speed, float timeout) {
 
-        motorFrontRight.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        motorBackRight.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        motorFrontLeft.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        motorBackLeft.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-
         int motorFrontRightTP = motorFrontRight.getCurrentPosition() + (int)(inches * drive.COUNTS_PER_INCH);
         int motorBackRightTP = motorBackRight.getCurrentPosition() + (int)(inches * drive.COUNTS_PER_INCH);
         int motorFrontLeftTP = motorFrontLeft.getCurrentPosition() + (int)(inches * drive.COUNTS_PER_INCH);
@@ -295,6 +199,11 @@ public class SensorTest extends LinearOpMode {
         motorBackRight.setTargetPosition(motorBackRightTP);
         motorFrontLeft.setTargetPosition(motorFrontLeftTP);
         motorBackLeft.setTargetPosition(motorBackLeftTP);
+
+        motorFrontRight.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        motorBackRight.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        motorFrontLeft.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        motorBackLeft.setMode(DcMotor.RunMode.RUN_TO_POSITION);
 
         this.runtime.reset();
 
@@ -387,8 +296,7 @@ public class SensorTest extends LinearOpMode {
         motorFrontLeft.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         motorBackLeft.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
     }
-    public BNO055IMU initIMU() {
-        BNO055IMU imu;
+    public void initIMU() {
 
         BNO055IMU.Parameters IMUparameters = new BNO055IMU.Parameters();
         IMUparameters.angleUnit = BNO055IMU.AngleUnit.DEGREES;
@@ -400,7 +308,6 @@ public class SensorTest extends LinearOpMode {
         imu = hardwareMap.get(BNO055IMU.class, "imu");
         imu.initialize(IMUparameters);
 
-        return imu;
     }
 
     //Everything after this is copied
@@ -499,7 +406,6 @@ public class SensorTest extends LinearOpMode {
         sensorRotator = hardwareMap.get(ServoImplEx.class, "sensor");
         foundationLeft = hardwareMap.get(ServoImplEx.class, "foundationLeft");
         foundationRight = hardwareMap.get(ServoImplEx.class, "foundationRight");
-        intakeLift = hardwareMap.get(ServoImplEx.class, "liftIntake");
     }
     public void strafeInch(int inches, float speed, float timeout) {
 
@@ -541,6 +447,118 @@ public class SensorTest extends LinearOpMode {
         motorBackRight.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         motorFrontLeft.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         motorBackLeft.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+    }
+    public void gyroTurn (  double speed, double angle) {
+
+        // keep looping while we are still active, and not on heading.
+        angles = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
+        while (opModeIsActive() && !onHeading(speed, angle, P_TURN_COEFF, angles)) {
+            // Update telemetry & Allow time for other processes to run.
+            telemetry.update();
+            angles = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
+        }
+    }
+
+    /**
+     *  Method to obtain & hold a heading for a finite amount of time
+     *  Move will stop once the requested time has elapsed
+     *
+     * @param speed      Desired speed of turn.
+     * @param angle      Absolute Angle (in Degrees) relative to last gyro reset.
+     *                   0 = fwd. +ve is CCW from fwd. -ve is CW from forward.
+     *                   If a relative angle is required, add/subtract from current heading.
+     * @param holdTime   Length of time (in seconds) to hold the specified heading.
+     */
+    public void gyroHold( double speed, double angle, double holdTime) {
+
+        ElapsedTime holdTimer = new ElapsedTime();
+
+        // keep looping while we have time remaining.
+        holdTimer.reset();
+        while (opModeIsActive() && (holdTimer.time() < holdTime)) {
+            // Update telemetry & Allow time for other processes to run.
+            onHeading(speed, angle, P_TURN_COEFF, angles);
+            telemetry.update();
+        }
+
+        // Stop all motion;
+        motorBackLeft.setPower(0);
+        motorFrontLeft.setPower(0);
+        motorBackRight.setPower(0);
+        motorFrontRight.setPower(0);
+    }
+
+    /**
+     * Perform one cycle of closed loop heading control.
+     *
+     * @param speed     Desired speed of turn.
+     * @param angle     Absolute Angle (in Degrees) relative to last gyro reset.
+     *                  0 = fwd. +ve is CCW from fwd. -ve is CW from forward.
+     *                  If a relative angle is required, add/subtract from current heading.
+     * @param PCoeff    Proportional Gain coefficient
+     * @return
+     */
+    boolean onHeading(double speed, double angle, double PCoeff, Orientation angles) {
+        double   error ;
+        double   steer ;
+        boolean  onTarget = false ;
+        double leftSpeed;
+        double rightSpeed;
+
+        // determine turn power based on +/- error
+        error = getError(angle,angles);
+
+        if (Math.abs(error) <= HEADING_THRESHOLD) {
+            steer = 0.0;
+            leftSpeed  = 0.0;
+            rightSpeed = 0.0;
+            onTarget = true;
+        }
+        else {
+            steer = getSteer(error, PCoeff);
+            rightSpeed  = speed * steer;
+            leftSpeed   = -rightSpeed;
+        }
+
+        // Send desired speeds to motors.
+        motorBackLeft.setPower(leftSpeed);
+        motorFrontLeft.setPower(leftSpeed);
+        motorBackRight.setPower(rightSpeed);
+        motorFrontRight.setPower(rightSpeed);
+
+        // Display it for the driver.
+        telemetry.addData("Target", "%5.2f", angle);
+        telemetry.addData("Err/St", "%5.2f/%5.2f", error, steer);
+        telemetry.addData("Speed.", "%5.2f:%5.2f", leftSpeed, rightSpeed);
+
+        return onTarget;
+    }
+
+    /**
+     * getError determines the error between the target angle and the robot's current heading
+     * @param   targetAngle  Desired angle (relative to global reference established at last Gyro Reset).
+     * @return  error angle: Degrees in the range +/- 180. Centered on the robot's frame of reference
+     *          +ve error means the robot should turn LEFT (CCW) to reduce error.
+     */
+    public double getError(double targetAngle, Orientation angles) {
+
+        double robotError;
+
+        // calculate error in -179 to +180 range  (
+        robotError = targetAngle - angles.firstAngle;
+        while (robotError > 180)  robotError -= 360;
+        while (robotError <= -180) robotError += 360;
+        return robotError;
+    }
+
+    /**
+     * returns desired steering force.  +/- 1 range.  +ve = steer left
+     * @param error   Error angle in robot relative degrees
+     * @param PCoeff  Proportional Gain Coefficient
+     * @return
+     */
+    public double getSteer(double error, double PCoeff) {
+        return Range.clip(error * PCoeff, -1, 1);
     }
 
 

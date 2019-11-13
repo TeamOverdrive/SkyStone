@@ -1,18 +1,49 @@
-package org.firstinspires.ftc.teamcode.ftc2753.auto;
+/* Copyright (c) 2019 FIRST. All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without modification,
+ * are permitted (subject to the limitations in the disclaimer below) provided that
+ * the following conditions are met:
+ *
+ * Redistributions of source code must retain the above copyright notice, this list
+ * of conditions and the following disclaimer.
+ *
+ * Redistributions in binary form must reproduce the above copyright notice, this
+ * list of conditions and the following disclaimer in the documentation and/or
+ * other materials provided with the distribution.
+ *
+ * Neither the name of FIRST nor the names of its contributors may be used to endorse or
+ * promote products derived from this software without specific prior written permission.
+ *
+ * NO EXPRESS OR IMPLIED LICENSES TO ANY PARTY'S PATENT RIGHTS ARE GRANTED BY THIS
+ * LICENSE. THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
+ * THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE
+ * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+ * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+ * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+ * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+ * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+ * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
 
-import com.qualcomm.hardware.bosch.BNO055IMU;
-import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+package org.firstinspires.ftc.teamcode.ftc2753.Dave;
+
+import com.qualcomm.hardware.rev.Rev2mDistanceSensor;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DistanceSensor;
+import com.qualcomm.robotcore.hardware.Servo;
+import com.qualcomm.robotcore.hardware.ServoImplEx;
+import com.qualcomm.robotcore.hardware.SwitchableLight;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.robotcore.external.ClassFactory;
+import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 import org.firstinspires.ftc.robotcore.external.matrices.OpenGLMatrix;
 import org.firstinspires.ftc.robotcore.external.matrices.VectorF;
-import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
-import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
-import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
 import org.firstinspires.ftc.robotcore.external.navigation.VuforiaLocalizer;
@@ -30,23 +61,43 @@ import static org.firstinspires.ftc.robotcore.external.navigation.AxesOrder.YZX;
 import static org.firstinspires.ftc.robotcore.external.navigation.AxesReference.EXTRINSIC;
 import static org.firstinspires.ftc.robotcore.external.navigation.VuforiaLocalizer.CameraDirection.BACK;
 
-@Autonomous(name="Auto RED-Skystone", group="Pushbot")
-public class AutoPathing extends LinearOpMode {
+/**
+ * This 2019-2020 OpMode illustrates the basics of using the Vuforia localizer to determine
+ * positioning and orientation of robot on the SKYSTONE FTC field.
+ * The code is structured as a LinearOpMode
+ *
+ * When images are located, Vuforia is able to determine the position and orientation of the
+ * image relative to the camera.  This sample code then combines that information with a
+ * knowledge of where the target images are on the field, to determine the location of the camera.
+ *
+ * From the Audience perspective, the Red Alliance station is on the right and the
+ * Blue Alliance Station is on the left.
 
-    DriveTrain drive = new DriveTrain();
+ * Eight perimeter targets are distributed evenly around the four perimeter walls
+ * Four Bridge targets are located on the bridge uprights.
+ * Refer to the Field Setup manual for more specific location details
+ *
+ * A final calculation then uses the location of the camera on the robot to determine the
+ * robot's location and orientation on the field.
+ *
+ * @see VuforiaLocalizer
+ * @see VuforiaTrackableDefaultListener
+ * see  skystone/doc/tutorial/FTC_FieldCoordinateSystemDefinition.pdf
+ *
+ * Use Android Studio to Copy this Class, and Paste it into your team's code folder with a new name.
+ * Remove or comment out the @Disabled line to add this opmode to the Driver Station OpMode list.
+ *
+ * IMPORTANT: In order to use this OpMode, you need to obtain your own Vuforia license key as
+ * is explained below.
+ */
 
-    private ElapsedTime runtime = new ElapsedTime();
+@TeleOp(name="SKYSTONE Vuforia Nav Webcam", group ="Concept")
 
-    private DistanceSensor distRight;
-    private DistanceSensor distLeft;
+public class VuforiaTemplate extends LinearOpMode {
 
-    DcMotor motorBackLeft;
-    DcMotor motorBackRight;
-    DcMotor motorFrontLeft;
-    DcMotor motorFrontRight;
-
+    // IMPORTANT: If you are using a USB WebCam, you must select CAMERA_CHOICE = BACK; and PHONE_IS_PORTRAIT = false;
     private static final VuforiaLocalizer.CameraDirection CAMERA_CHOICE = BACK;
-    private static final boolean PHONE_IS_PORTRAIT = false;
+    private static final boolean PHONE_IS_PORTRAIT = false  ;
 
     /*
      * IMPORTANT: You need to obtain your own license key to use Vuforia. The string below with which
@@ -61,11 +112,7 @@ public class AutoPathing extends LinearOpMode {
      * and paste it in to your code on the next line, between the double quotes.
      */
     private static final String VUFORIA_KEY =
-            "AeUsQDb/////AAAAGXsDAQwNS0SWopXJpAHyRntcnTcoWD8Tns" +
-                    "R6PWGX9OwmlIhNxQgn8RX/1cH2RXXTsuSkHh6OjfMoCuHt35rhumaUsLnk8MZZJ7P9PEu+uSsUbH1hHcnnB" +
-                    "6GzJnX/FqlZJX5HWWfeQva5s4OHJEwSbPR2zxhkRxntAjeuIPGVSHeIseAikPB0NF0SqEiPZea+PWrxpryP" +
-                    "/bxKqy7VA77krKFtgDi6amam+vWvBCqyIo6tXxbo0w8q/HCXo4v/4UYyoFLRx1l1d2Wya5an5SwFfU3eKxy" +
-                    "0BYc3tnsaaDJww59RNJ6IK9D3PZM+oPDrmF9ukQrc/jw+u+6Zm4wQHieHt9urSwLR7dgz0V3aatDx1V7y";
+            "AasMRnb/////AAABmfnajLJrOEyppDcz2Bh0W2Am2zcR8ujLMs+DIkcviBzeETt1IDXmO9i6rZfti6VsQ008860DREQXS2eiTg5gTbQ9XN0zoLA/c0qsFccWTA+429o3ZyJqDddgdy4FlGDGk+YDsE6nqTSSr3fVDmS5lAZ+3rBEUQ3ksutkZMuNQigcjVH1DPqLFsZWpSCTmyVvfMuu4Va+xEXloMdm0eza0a1xWAj7HZ6uTZiQS4cL+tCFy3o8pQCdpxTqsWMscq9tn//ADCGqz6jTpR5BTiCEx6azarjeL8KI/S608mjxUhUx168yttZOeK9Bo3INNA2D/wGJn/r5EWewYoxcqTAoD/MF8a2ip/Fhvq/RXn7dYXA8";
 
     // Since ImageTarget trackables use mm to specifiy their dimensions, we must use mm for all the physical dimension.
     // We will define some constants and conversions here
@@ -89,40 +136,77 @@ public class AutoPathing extends LinearOpMode {
     // Class Members
     private OpenGLMatrix lastLocation = null;
     private VuforiaLocalizer vuforia = null;
-    public boolean targetVisible = false;
-    private boolean foundStone = false;
+
+    /**
+     * This is the webcam we are to use. As with other hardware devices such as motors and
+     * servos, this device is identified using the robot configuration tool in the FTC application.
+     */
+    WebcamName Webcam8 = null;
+
+    private boolean targetVisible = false;
     private float phoneXRotate    = 0;
     private float phoneYRotate    = 0;
     private float phoneZRotate    = 0;
+
+    //------------------------NONVUFORIA-------------------------------
+
+    DriveTrain drive = new DriveTrain();
+
+    private ElapsedTime runtime = new ElapsedTime();
+    private DistanceSensor distRight;
+    private DistanceSensor RobotSideDistance;
+    private Servo sideGrabber;
+    private Servo sensorRotator;
+    private Servo foundationLeft;
+    private Servo foundationRight;
+    private Servo intakeLift;
+
+    DcMotor motorBackLeft;
+    DcMotor motorBackRight;
+    DcMotor motorFrontLeft;
+    DcMotor motorFrontRight;
+
+    public static double GRABBERUP = 0.66;
+    public static double GRABBERDOWN = 0.8;
+
+    boolean wasYDown = false;
 
     public static double yPos;
     public static double zPos;
     public static double xPos;
 
-    public void runOpMode() {
+    boolean switchNav = true;
+    //-----------------------------------------------------------------
 
-        initIMU();
+    @Override public void runOpMode() {
+        /*
+         * Retrieve the camera we are to use.
+         */
+        Webcam8 = hardwareMap.get(WebcamName.class, "Webcam8");
 
-        distRight = hardwareMap.get(DistanceSensor.class, "leftDistanceSensor");
-        distLeft = hardwareMap.get(DistanceSensor.class, "leftDistanceSensor");
-
-        // distRight.getDistance(DistanceUnit.MM)
-        // distLeft.getDistance(DistanceUnit.MM)
-
+        /*
+         * Configure Vuforia by creating a Parameter object, and passing it to the Vuforia engine.
+         * We can pass Vuforia the handle to a camera preview resource (on the RC phone);
+         * If no camera monitor is desired, use the parameter-less constructor instead (commented out below).
+         */
         int cameraMonitorViewId = hardwareMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "id", hardwareMap.appContext.getPackageName());
         VuforiaLocalizer.Parameters parameters = new VuforiaLocalizer.Parameters(cameraMonitorViewId);
 
         // VuforiaLocalizer.Parameters parameters = new VuforiaLocalizer.Parameters();
 
         parameters.vuforiaLicenseKey = VUFORIA_KEY;
-        parameters.cameraDirection   = CAMERA_CHOICE;
+
+        /**
+         * We also indicate which camera on the RC we wish to use.
+         */
+        parameters.cameraName = Webcam8;
 
         //  Instantiate the Vuforia engine
         vuforia = ClassFactory.getInstance().createVuforia(parameters);
 
-        // Load the data sets for the trackable objects. For OpenRC, these are loaded from
-        // the internal storage to reduce APK size
-        VuforiaTrackables targetsSkyStone = this.vuforia.loadTrackablesFromFile("/sdcard/FIRST/Skystone");
+        // Load the data sets for the trackable objects. These particular data
+        // sets are stored in the 'assets' part of our application.
+        VuforiaTrackables targetsSkyStone = this.vuforia.loadTrackablesFromAsset("Skystone");
 
         VuforiaTrackable stoneTarget = targetsSkyStone.get(0);
         stoneTarget.setName("Stone Target");
@@ -258,24 +342,45 @@ public class AutoPathing extends LinearOpMode {
 
         // Next, translate the camera lens to where it is on the robot.
         // In this example, it is centered (left to right), but forward of the middle of the robot, and above ground level.
-        final float CAMERA_FORWARD_DISPLACEMENT  = 4.0f * mmPerInch;   // eg: Camera is 4 Inches in front of robot center
-        final float CAMERA_VERTICAL_DISPLACEMENT = 8.0f * mmPerInch;   // eg: Camera is 8 Inches above ground
-        final float CAMERA_LEFT_DISPLACEMENT     = 0;     // eg: Camera is ON the robot's center line
+        final float CAMERA_FORWARD_DISPLACEMENT  = 5.0f * mmPerInch;   // eg: Camera is 4 Inches in front of robot center
+        final float CAMERA_VERTICAL_DISPLACEMENT = 5.0f * mmPerInch;   // eg: Camera is 8 Inches above ground
+        final float CAMERA_LEFT_DISPLACEMENT     = 5.75f * mmPerInch;     // eg: Camera is ON the robot's center line
 
         OpenGLMatrix robotFromCamera = OpenGLMatrix
-                .translation(CAMERA_FORWARD_DISPLACEMENT, CAMERA_LEFT_DISPLACEMENT, CAMERA_VERTICAL_DISPLACEMENT)
-                .multiplied(Orientation.getRotationMatrix(EXTRINSIC, YZX, DEGREES, phoneYRotate, phoneZRotate, phoneXRotate));
+                    .translation(CAMERA_FORWARD_DISPLACEMENT, CAMERA_LEFT_DISPLACEMENT, CAMERA_VERTICAL_DISPLACEMENT)
+                    .multiplied(Orientation.getRotationMatrix(EXTRINSIC, YZX, DEGREES, phoneYRotate, phoneZRotate, phoneXRotate));
 
         /**  Let all the trackable listeners know where the phone is.  */
         for (VuforiaTrackable trackable : allTrackables) {
             ((VuforiaTrackableDefaultListener) trackable.getListener()).setPhoneInformation(robotFromCamera, parameters.cameraDirection);
         }
+        //-------------------------------------NON VUFORIA------------------------------------------
+        distRight = hardwareMap.get(DistanceSensor.class, "rightDistanceSensor");
+        Rev2mDistanceSensor sensorTimeOfFlight = (Rev2mDistanceSensor)distRight;
+        // distRight.getDistance(DistanceUnit.MM) Implement as separate method?
 
         initMotors();
+        initServos();
+
+        sideGrabber.setPosition(0.5f);
+        intakeLift.setPosition(1);
+
+
+        //------------------------------------NON VUFORIA -------------------------------------------
+        // WARNING:
+        // In this sample, we do not wait for PLAY to be pressed.  Target Tracking is started immediately when INIT is pressed.
+        // This sequence is used to enable the new remote DS Camera Preview feature to be used with this sample.
+        // CONSEQUENTLY do not put any driving commands in this loop.
+        // To restore the normal opmode structure, just un-comment the following line:
+
+         //waitForStart();
+
+        // Note: To use the remote camera preview:
+        // AFTER you hit Init on the Driver Station, use the "options menu" to select "Camera Stream"
+        // Tap the preview window to receive a fresh image.
 
         targetsSkyStone.activate();
-
-        while (!isStarted()) {
+        while (!isStopRequested()) {
 
             // check all the trackable targets to see which one (if any) is visible.
             targetVisible = false;
@@ -298,109 +403,132 @@ public class AutoPathing extends LinearOpMode {
             if (targetVisible) {
                 // express position (translation) of robot in inches.
                 VectorF translation = lastLocation.getTranslation();
+                telemetry.addData("Pos (mm)", "{X, Y, Z} = %.1f, %.1f, %.1f",
+                        translation.get(0), translation.get(1), translation.get(2)); //divide by mmPerInch to get INCHES VALUE (25.4)
                 telemetry.addData("Pos (in)", "{X, Y, Z} = %.1f, %.1f, %.1f",
                         translation.get(0) / mmPerInch, translation.get(1) / mmPerInch, translation.get(2) / mmPerInch);
+                //------------------------------NON VUFORIA------------------------------------------------------------
+
+                telemetry.addData("Accurate X-Dist: ", distRight.getDistance(DistanceUnit.MM));
 
                 xPos = translation.get(0);
                 yPos = translation.get(1);
                 zPos = translation.get(2);
 
+
+
+                //-------------------------------------------------------NON VUFORIA ----------------------------------------
+
                 // express the rotation of the robot in degrees.
                 Orientation rotation = Orientation.getOrientation(lastLocation, EXTRINSIC, XYZ, DEGREES);
                 telemetry.addData("Rot (deg)", "{Roll, Pitch, Heading} = %.0f, %.0f, %.0f", rotation.firstAngle, rotation.secondAngle, rotation.thirdAngle);
+
+                /* newcode-------------------------------------------
+                if ((translation.get(1)/mmPerInch) > 4 ) {
+                    drive.move("LEFT", 0.5f);
+                }
+                else if ((translation.get(1)/mmPerInch) <-4) {
+                    drive.move()
+                }
+
+                newcode--------------------------------------------------------*/
+
+
+
             }
             else {
                 telemetry.addData("Visible Target", "none");
             }
-            telemetry.addData("Y-Position: ",yPos);
             telemetry.update();
 
-        }
+            waitForStart();
+            setBrake();
+            //wait(500);
 
-        waitForStart();
-
-        setBrake();
-
-        moveInch(-4,1,2);
-
-        locateSkystone();
-
-    }
-
-    public void initMotors() {
-
-        motorBackLeft = hardwareMap.get(DcMotor.class, "left_back");
-        motorBackRight = hardwareMap.get(DcMotor.class, "right_back");
-        motorFrontLeft = hardwareMap.get(DcMotor.class, "left_front");
-        motorFrontRight = hardwareMap.get(DcMotor.class, "right_front");
-
-        motorBackRight.setDirection(DcMotor.Direction.REVERSE);
-        motorFrontRight.setDirection(DcMotor.Direction.REVERSE);
-
-    }
-    public void locateSkystone() {
-        if (!targetVisible) {
-            moveInch(-3,1,2);
-            if (distRight.getDistance(DistanceUnit.MM) > 500)
-                locateSkystone();
-            else {
-                while (distRight.getDistance(DistanceUnit.MM) > 10) {
-                    drive.move(-1);
-                    update();
-
-                }
+            strafeInch(22, 0.30f, 7);
+            if (!targetVisible){
+                moveInch (28,0.2f, 10);
             }
+            else if (targetVisible) {
+                moveToYCoord();
+
+            }
+            //stopMove();
+            //moveToYCoord();
+            //moveToXCoord();
+
+            //pullOut();
+            //bringBlockUnderBridge();
+            //scanForSecondBlock();
+            //moveToYCoord();
+            //moveToXCoord();
+            //pullOut();
+            //bringBlockUnderBridge();
+            //parkUnderBridge();
+
+
         }
-        else if (yPos > 3) {
-            moveInch(2,-2,0.3f,4);
-            moveInch(16, -16, 0.4f,4);
-            moveInch(10,1,2);
-        }
-        else if (yPos < -3) {
-            moveInch(-2,2,0.3f,4);
-            moveInch(16, -16, 0.4f,4);
-            moveInch(10,1,2);
-        }
+
+        // Disable Tracking when we are done;
+        targetsSkyStone.deactivate();
     }
 
-    public void update() {
-        motorFrontLeft.setPower(drive.FrontLeft);
-        motorFrontRight.setPower(drive.FrontRight);
-        motorBackLeft.setPower(drive.BackLeft);
-        motorBackRight.setPower(drive.BackRight);
-
-    }
-
-    public void setBrake() {
-
-        motorFrontRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        motorBackRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        motorFrontLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        motorBackLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-    }
-
-    public void removeBrake() {
-
-        motorFrontLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
-        motorBackRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
-        motorFrontLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
-        motorBackLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
-
-    }
-
-    public void stopMove() {
-
-        motorFrontLeft.setPower(0);
-        motorFrontRight.setPower(0);
-        motorBackLeft.setPower(0);
-        motorBackRight.setPower(0);
-
-    }
+    //----------------------------------NON VUFORIA -----------------------------------------------
     public void moveInch(int inches, float speed, float timeout) {
+
+        motorFrontRight.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        motorBackRight.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        motorFrontLeft.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        motorBackLeft.setMode(DcMotor.RunMode.RUN_TO_POSITION);
 
         int motorFrontRightTP = motorFrontRight.getCurrentPosition() + (int)(inches * drive.COUNTS_PER_INCH);
         int motorBackRightTP = motorBackRight.getCurrentPosition() + (int)(inches * drive.COUNTS_PER_INCH);
         int motorFrontLeftTP = motorFrontLeft.getCurrentPosition() + (int)(inches * drive.COUNTS_PER_INCH);
+        int motorBackLeftTP = motorBackLeft.getCurrentPosition() + (int)(inches * drive.COUNTS_PER_INCH);
+
+        motorFrontRight.setTargetPosition(motorFrontRightTP);
+        motorBackRight.setTargetPosition(motorBackRightTP);
+        motorFrontLeft.setTargetPosition(motorFrontLeftTP);
+        motorBackLeft.setTargetPosition(motorBackLeftTP);
+
+        this.runtime.reset();
+
+        motorFrontRight.setPower(Math.abs(speed));
+        motorBackRight.setPower(Math.abs(speed));
+        motorFrontLeft.setPower(Math.abs(speed));
+        motorBackLeft.setPower(Math.abs(speed));
+
+
+        while (opModeIsActive() &&
+                (this.runtime.seconds() < timeout) &&
+                (motorFrontRight.isBusy() && motorBackRight.isBusy() && motorFrontLeft.isBusy() && motorBackLeft.isBusy())) {
+
+        }
+
+        motorFrontRight.setPower(0);
+        motorBackRight.setPower(0);
+        motorFrontLeft.setPower(0);
+        motorBackLeft.setPower(0);
+
+        motorFrontRight.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        motorBackRight.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        motorFrontLeft.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        motorBackLeft.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+    }
+
+
+    public void initServos(){
+        sideGrabber = hardwareMap.get(ServoImplEx.class, "sideGrabber");
+        sensorRotator = hardwareMap.get(ServoImplEx.class, "sensor");
+        foundationLeft = hardwareMap.get(ServoImplEx.class, "foundationLeft");
+        foundationRight = hardwareMap.get(ServoImplEx.class, "foundationRight");
+        intakeLift = hardwareMap.get(ServoImplEx.class, "liftIntake");
+    }
+    public void strafeInch(int inches, float speed, float timeout) {
+
+        int motorFrontRightTP = motorFrontRight.getCurrentPosition() + (int)(inches * drive.COUNTS_PER_INCH);
+        int motorBackRightTP = motorBackRight.getCurrentPosition() + (int)(-inches * drive.COUNTS_PER_INCH);
+        int motorFrontLeftTP = motorFrontLeft.getCurrentPosition() + (int)(-inches * drive.COUNTS_PER_INCH);
         int motorBackLeftTP = motorBackLeft.getCurrentPosition() + (int)(inches * drive.COUNTS_PER_INCH);
 
         motorFrontRight.setTargetPosition(motorFrontRightTP);
@@ -421,7 +549,7 @@ public class AutoPathing extends LinearOpMode {
         motorBackLeft.setPower(Math.abs(speed));
 
 
-        while (opModeIsActive() &&
+        while (opModeIsActive() &&  // may need to delete
                 (this.runtime.seconds() < timeout) &&
                 (motorFrontRight.isBusy() && motorBackRight.isBusy() && motorFrontLeft.isBusy() && motorBackLeft.isBusy())) {
 
@@ -437,86 +565,83 @@ public class AutoPathing extends LinearOpMode {
         motorFrontLeft.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         motorBackLeft.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
     }
-    public void turnTo(double angle,BNO055IMU imu) {
+    public void initMotors() {
 
-        Orientation angles;
+        motorBackLeft = hardwareMap.get(DcMotor.class, "left_back");
+        motorBackRight = hardwareMap.get(DcMotor.class, "right_back");
+        motorFrontLeft = hardwareMap.get(DcMotor.class, "left_front");
+        motorFrontRight = hardwareMap.get(DcMotor.class, "right_front");
 
-        angles = imu.getAngularOrientation(AxesReference.INTRINSIC, XYZ, AngleUnit.DEGREES);
-
-        while (!(angle <= angles.firstAngle + 1) && !(angle >= angles.firstAngle - 1)) {
-            angles = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.YZX, AngleUnit.DEGREES);
-            double relativeTarget = Math.toRadians(angle) - Math.toRadians(angles.firstAngle);
-            if (Math.abs(relativeTarget) > Math.PI) {
-                if (relativeTarget > 0)
-                    relativeTarget = -(Math.PI * 2 - Math.abs(relativeTarget));
-                else if (relativeTarget < 0)
-                    relativeTarget = Math.PI * 2 - Math.abs(relativeTarget);
-            }
-            //what is the issue here, it does not want to work on the math.pi nigerian
-            motorFrontRight.setPower((relativeTarget/Math.PI) * Math.abs(relativeTarget/Math.PI));
-            motorBackRight.setPower((relativeTarget/Math.PI) * Math.abs(relativeTarget/Math.PI));
-            motorFrontLeft.setPower(-((relativeTarget/Math.PI) * Math.abs(relativeTarget/Math.PI)));
-            motorBackLeft.setPower(-((relativeTarget/Math.PI) * Math.abs(relativeTarget/Math.PI)));
-
-
-        }
+        motorBackRight.setDirection(DcMotor.Direction.REVERSE);
+        motorFrontRight.setDirection(DcMotor.Direction.REVERSE);
 
     }
 
-    public void moveInch(int inchesLeft,int inchesRight, float speed, float timeout) {
+    public void update() {
+        motorFrontLeft.setPower(drive.FrontLeft);
+        motorFrontRight.setPower(drive.FrontRight);
+        motorBackLeft.setPower(drive.BackLeft);
+        motorBackRight.setPower(drive.BackRight);
 
-        int motorFrontRightTP = motorFrontRight.getCurrentPosition() + (int)(inchesRight * drive.COUNTS_PER_INCH);
-        int motorBackRightTP = motorBackRight.getCurrentPosition() + (int)(inchesRight * drive.COUNTS_PER_INCH);
-        int motorFrontLeftTP = motorFrontLeft.getCurrentPosition() + (int)(inchesLeft * drive.COUNTS_PER_INCH);
-        int motorBackLeftTP = motorBackLeft.getCurrentPosition() + (int)(inchesLeft * drive.COUNTS_PER_INCH);
+    }
+    public void setBrake() {
 
-        motorFrontRight.setTargetPosition(motorFrontRightTP);
-        motorBackRight.setTargetPosition(motorBackRightTP);
-        motorFrontLeft.setTargetPosition(motorFrontLeftTP);
-        motorBackLeft.setTargetPosition(motorBackLeftTP);
+        motorFrontRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        motorBackRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        motorFrontLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        motorBackLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+    }
+    public void stopMove() {
 
-        motorFrontRight.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        motorBackRight.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        motorFrontLeft.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        motorBackLeft.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-
-        this.runtime.reset();
-
-        motorFrontRight.setPower(Math.abs(speed));
-        motorBackRight.setPower(Math.abs(speed));
-        motorFrontLeft.setPower(Math.abs(speed));
-        motorBackLeft.setPower(Math.abs(speed));
-
-
-        while (opModeIsActive() &&
-                (this.runtime.seconds() < timeout) &&
-                (motorFrontRight.isBusy() && motorBackRight.isBusy() && motorFrontLeft.isBusy() && motorBackLeft.isBusy())) {
-
-        }
-
-        motorFrontRight.setPower(0);
-        motorBackRight.setPower(0);
         motorFrontLeft.setPower(0);
+        motorFrontRight.setPower(0);
         motorBackLeft.setPower(0);
-
-        motorFrontRight.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        motorBackRight.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        motorFrontLeft.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        motorBackLeft.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        motorBackRight.setPower(0);
     }
-    public void initIMU() {
-        BNO055IMU imu;
 
-        BNO055IMU.Parameters IMUparameters = new BNO055IMU.Parameters();
-        IMUparameters.angleUnit = BNO055IMU.AngleUnit.DEGREES;
-        IMUparameters.accelUnit = BNO055IMU.AccelUnit.METERS_PERSEC_PERSEC;
-        IMUparameters.calibrationDataFile = "BNO055IMUCalibration.json";
-        IMUparameters.loggingEnabled = true;
-        IMUparameters.loggingTag = "IMU";
+      public void moveToYCoord() {
+         /*if (!targetVisible) {
+            moveInch(-3, 1, 2);
 
-        imu = hardwareMap.get(BNO055IMU.class, "imu");
-        imu.initialize(IMUparameters);
+            if (distRight.getDistance(DistanceUnit.MM) > 500)
+                moveToYCoord();
+            else {
+                while (distRight.getDistance(DistanceUnit.MM) > 10) {
+                    drive.move(-1);
+                    update();
+
+                }
+            }*/
+        //}
+
+          if (yPos > 30) {
+              if(switchNav = true) {
+                  //drive.move("RIGHT", 0.1f);
+                  moveInch(18,0.2f, 5 );
+              }
+              else if (switchNav = false) {
+                  setBrake();
+              }
+
+        } else if (yPos < -30) {
+              if (switchNav = true) {
+                  //drive.move("LEFT", 0.1f);
+                  moveInch(-18, 0.2f, 5);
+              }
+              else if (switchNav = false) {
+                  setBrake();
+              }
+        }
+          else {
+              switchNav = false;
+              setBrake();
+              //moveInch (10, 0.25f, 7 );
+              //strafeInch(8, 0.2f, 5);  SWITCH TO DIST SENSOR
+
+          }
     }
+    //---------------------------------------------------------------------NON VUFORIA ---------------------------------
+
 
 
 

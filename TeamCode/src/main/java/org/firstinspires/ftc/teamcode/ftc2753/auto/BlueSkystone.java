@@ -28,9 +28,9 @@ import org.firstinspires.ftc.teamcode.ftc2753.subsystems.DriveTrain;
 import static org.firstinspires.ftc.robotcore.external.navigation.AxesOrder.XYZ;
 
 @Config
-@Autonomous(name="Red Skystone", group="auto")
+@Autonomous(name="Blue Skystone", group="auto")
 
-public class SensorTest extends LinearOpMode {
+public class BlueSkystone extends LinearOpMode {
 
     DriveTrain drive = new DriveTrain();
 
@@ -50,8 +50,6 @@ public class SensorTest extends LinearOpMode {
     private Servo foundationLeft;
     private Servo foundationRight;
     private Servo intakeLift;
-
-    int position;
 
     public static double GRABBERUP = 0.66;
     public static double GRABBERDOWN = 0.8;
@@ -110,10 +108,10 @@ public class SensorTest extends LinearOpMode {
 
         strafeInch(24,0.95f,7);
 
-        moveInch(-28,1,2);
+        moveInch(28,1,2);
 
         strafeInch(9,0.95f,7);
-        while (distRight.getDistance(DistanceUnit.MM) > 85) {
+        while (distRight.getDistance(DistanceUnit.MM) > 97) {
             drive.move("LEFT",0.2f);
             update();
         }
@@ -123,9 +121,7 @@ public class SensorTest extends LinearOpMode {
 
         sleep(500);
 
-        moveInch(14,0.8f,3);
-
-        runtime.reset();
+        moveInch(-18,0.9f,3);
 
         while (!targetFound) {
 
@@ -162,7 +158,7 @@ public class SensorTest extends LinearOpMode {
                 telemetry.addLine("Skystone");
             }
             if (Color.red((color)) > 0) {
-                drive.move(0.1f);
+                drive.move(-0.2f);
                 update();
             } else {
                 drive.move(0);
@@ -195,14 +191,7 @@ public class SensorTest extends LinearOpMode {
                     .addData("b", "%02x", Color.blue(color));
             telemetry.update();
         }
-        if (runtime.seconds() < 0.3) {
-            position = 1;
-        } else if (runtime.seconds() < 0.6) {
-            position = 2;
-        } else {
-            position = 3;
-        }
-        moveInch(9,0.2f,5);
+        moveInch(8,0.2f,5);
 
         // sleep(1000);
 
@@ -212,24 +201,21 @@ public class SensorTest extends LinearOpMode {
 
         sleep(1000);
 
-        strafeInch(-18,0.3f,100);
+        strafeInch(-17,0.3f,100);
 
-        moveInch(65,0.5f,100);
+        moveInch(-74,0.5f,100);
 
         sideGrabber.setPosition(0.5f);
 
         sleep(1000);
 
-        moveInch(-105,0.4f,100);
+        moveInch(105,0.4f,100);
 
-        moveInch(58,0.6f,100);
+        moveInch(-58,0.6f,100);
 
-        strafeInch(18,0.1f,3);
+        strafeInch(18,0.3f,3);
 
-        telemetry.addData("Position: ", position);
-        telemetry.update();
 
-        sleep(10000);
 
     }
 

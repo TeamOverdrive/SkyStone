@@ -8,6 +8,7 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.hardware.ServoImplEx;
+import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
@@ -18,7 +19,7 @@ import org.firstinspires.ftc.teamcode.ftc2753.subsystems.DriveTrain;
 import java.util.Locale;
 
 @Config
-@TeleOp(name = "Teleop2.1", group = "TeleOp")
+@TeleOp(name = "Teleop", group = "TeleOp")
 public class Teleop2 extends LinearOpMode {
 
     private DcMotor motorBackLeft;
@@ -31,8 +32,19 @@ public class Teleop2 extends LinearOpMode {
     private Servo sensorRotator;
     private Servo foundationLeft;
     private Servo foundationRight;
+    private Servo intakeLift;
+
+    private float turnSpeed = 1;
 
     private float intakeSpeed;
+    private float speed = 1;
+
+    boolean wasdpad_down = false;
+    boolean wasdpad_up = false;
+    boolean wasdpad_left = false;
+    boolean wasdpad_right = false;
+
+
 
     /*
     note that with the config annotation above public class Teleop2,
@@ -48,8 +60,11 @@ public class Teleop2 extends LinearOpMode {
     public static double foundationDown = 0;
     public static double foundationDiagnostic = 0.5;
 
-    DriveTrain drive = new DriveTrain();
+    public int ybuttonNum = 0;
+    public boolean wasyDown = false;
 
+
+    DriveTrain drive = new DriveTrain();
 
     @Override
     public void runOpMode() throws InterruptedException {
@@ -69,10 +84,14 @@ public class Teleop2 extends LinearOpMode {
 
         initMotors();
         initServos();
+        intakeLift.setPosition(1);
 
         waitForStart();
 
-
+        setBrake(motorFrontLeft);
+        setBrake(motorFrontRight);
+        setBrake(motorBackLeft);
+        setBrake(motorBackRight);
 
         while (opModeIsActive() && !isStopRequested()) {
 
@@ -107,10 +126,17 @@ public class Teleop2 extends LinearOpMode {
 
             intake.setPower(intakeSpeed);
 
-            drive.BackLeft += gamepad1.left_trigger;
-            drive.FrontLeft += gamepad1.left_trigger;
-            drive.BackRight += gamepad1.right_trigger;
-            drive.FrontRight += gamepad1.right_trigger;
+            drive.BackLeft -= gamepad1.left_trigger;
+            drive.FrontLeft -= gamepad1.left_trigger;
+            drive.BackRight -= gamepad1.right_trigger;
+            drive.FrontRight -= gamepad1.right_trigger;
+
+            if (gamepad1.dpad_down) {
+                drive.BackLeft += 2 * gamepad1.left_trigger;
+                drive.FrontLeft += 2 * gamepad1.left_trigger;
+                drive.BackRight += 2 * gamepad1.right_trigger;
+                drive.FrontRight += 2 * gamepad1.right_trigger;
+            }
 
             //Servos
             if(gamepad2.b){
@@ -122,15 +148,20 @@ public class Teleop2 extends LinearOpMode {
             }
 
             sideGrabber.setPosition(grabberDiagnostic);
-            foundationLeft.setPosition(foundationDiagnostic);
-
-            if(gamepad2.a)
+            if(gamepad2.b)
                 grabFoundation();
-            if(gamepad2.y)
+            if(gamepad2.x)
                 releaseFoundation();
-
-
-            removeBrake();
+            if (gamepad2.y) {
+                intakeLift.setPosition(0.6);
+            }
+            if (gamepad2.a) {
+                intakeLift.setPosition(0);
+            }
+            if (gamepad1.y) {
+                imu = hardwareMap.get(BNO055IMU.class, "imu");
+                imu.initialize(parameters);
+            }
             update();
 
             //Telemetry
@@ -145,13 +176,13 @@ public class Teleop2 extends LinearOpMode {
     }
 
     private void grabFoundation() {
-        foundationRight.setPosition(foundationDown);
-        foundationLeft.setPosition(1-foundationDown);
+        foundationRight.setPosition(1.0f);
+        foundationLeft.setPosition(0.0f);
     }
 
     private void releaseFoundation(){
-        foundationRight.setPosition(foundationUp);
-        foundationLeft.setPosition(1-foundationUp);
+        foundationRight.setPosition(0.5f);
+        foundationLeft.setPosition(0.5f);
     }
 
     public void initMotors() {
@@ -172,6 +203,7 @@ public class Teleop2 extends LinearOpMode {
         sensorRotator = hardwareMap.get(ServoImplEx.class, "sensor");
         foundationLeft = hardwareMap.get(ServoImplEx.class, "foundationLeft");
         foundationRight = hardwareMap.get(ServoImplEx.class, "foundationRight");
+        intakeLift = hardwareMap.get(ServoImplEx.class, "liftIntake");
     }
 
     public void teleDrive(Orientation angles) {
@@ -184,8 +216,8 @@ public class Teleop2 extends LinearOpMode {
                 relativeAngle = Math.PI * 2 - Math.abs(relativeAngle);
         }
 
-        drive.move(relativeAngle, Math.sqrt(gamepad1.left_stick_x * gamepad1.left_stick_x +  gamepad1.left_stick_y * gamepad1.left_stick_y),
-                -gamepad1.right_stick_x);
+        drive.move(relativeAngle, Math.sqrt(gamepad1.left_stick_x * gamepad1.left_stick_x +  gamepad1.left_stick_y * gamepad1.left_stick_y) * speed,
+                gamepad1.right_stick_x * turnSpeed);
     }
     public void update() {
 
@@ -225,6 +257,13 @@ public class Teleop2 extends LinearOpMode {
     String formatDegrees(double degrees)
     {
         return String.format(Locale.getDefault(), "%.1f", AngleUnit.DEGREES.normalize(degrees));
+    }
+    public BNO055IMU returnIMU(BNO055IMU.Parameters parameters) {
+        BNO055IMU imu = null;
+        imu = hardwareMap.get(BNO055IMU.class, "imu");
+        imu.initialize(parameters);
+
+        return imu;
     }
 
 }
