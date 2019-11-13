@@ -97,7 +97,7 @@ public class VuforiaTemplate extends LinearOpMode {
 
     // IMPORTANT: If you are using a USB WebCam, you must select CAMERA_CHOICE = BACK; and PHONE_IS_PORTRAIT = false;
     private static final VuforiaLocalizer.CameraDirection CAMERA_CHOICE = BACK;
-    private static final boolean PHONE_IS_PORTRAIT = false  ;
+    private static final boolean PHONE_IS_PORTRAIT = false;
 
     /*
      * IMPORTANT: You need to obtain your own license key to use Vuforia. The string below with which
@@ -116,8 +116,8 @@ public class VuforiaTemplate extends LinearOpMode {
 
     // Since ImageTarget trackables use mm to specifiy their dimensions, we must use mm for all the physical dimension.
     // We will define some constants and conversions here
-    private static final float mmPerInch        = 25.4f;
-    private static final float mmTargetHeight   = (6) * mmPerInch;          // the height of the center of the target image above the floor
+    private static final float mmPerInch = 25.4f;
+    private static final float mmTargetHeight = (6) * mmPerInch;          // the height of the center of the target image above the floor
 
     // Constant for Stone Target
     private static final float stoneZ = 2.00f * mmPerInch;
@@ -131,7 +131,7 @@ public class VuforiaTemplate extends LinearOpMode {
 
     // Constants for perimeter targets
     private static final float halfField = 72 * mmPerInch;
-    private static final float quadField  = 36 * mmPerInch;
+    private static final float quadField = 36 * mmPerInch;
 
     // Class Members
     private OpenGLMatrix lastLocation = null;
@@ -144,9 +144,9 @@ public class VuforiaTemplate extends LinearOpMode {
     WebcamName Webcam8 = null;
 
     private boolean targetVisible = false;
-    private float phoneXRotate    = 0;
-    private float phoneYRotate    = 0;
-    private float phoneZRotate    = 0;
+    private float phoneXRotate = 0;
+    private float phoneYRotate = 0;
+    private float phoneZRotate = 0;
 
     //------------------------NONVUFORIA-------------------------------
 
@@ -178,7 +178,8 @@ public class VuforiaTemplate extends LinearOpMode {
     boolean switchNav = true;
     //-----------------------------------------------------------------
 
-    @Override public void runOpMode() {
+    @Override
+    public void runOpMode() {
         /*
          * Retrieve the camera we are to use.
          */
@@ -292,7 +293,7 @@ public class VuforiaTemplate extends LinearOpMode {
 
         front1.setLocation(OpenGLMatrix
                 .translation(-halfField, -quadField, mmTargetHeight)
-                .multiplied(Orientation.getRotationMatrix(EXTRINSIC, XYZ, DEGREES, 90, 0 , 90)));
+                .multiplied(Orientation.getRotationMatrix(EXTRINSIC, XYZ, DEGREES, 90, 0, 90)));
 
         front2.setLocation(OpenGLMatrix
                 .translation(-halfField, quadField, mmTargetHeight)
@@ -308,7 +309,7 @@ public class VuforiaTemplate extends LinearOpMode {
 
         rear1.setLocation(OpenGLMatrix
                 .translation(halfField, quadField, mmTargetHeight)
-                .multiplied(Orientation.getRotationMatrix(EXTRINSIC, XYZ, DEGREES, 90, 0 , -90)));
+                .multiplied(Orientation.getRotationMatrix(EXTRINSIC, XYZ, DEGREES, 90, 0, -90)));
 
         rear2.setLocation(OpenGLMatrix
                 .translation(halfField, -quadField, mmTargetHeight)
@@ -337,18 +338,18 @@ public class VuforiaTemplate extends LinearOpMode {
 
         // Rotate the phone vertical about the X axis if it's in portrait mode
         if (PHONE_IS_PORTRAIT) {
-            phoneXRotate = 90 ;
+            phoneXRotate = 90;
         }
 
         // Next, translate the camera lens to where it is on the robot.
         // In this example, it is centered (left to right), but forward of the middle of the robot, and above ground level.
-        final float CAMERA_FORWARD_DISPLACEMENT  = 5.0f * mmPerInch;   // eg: Camera is 4 Inches in front of robot center
+        final float CAMERA_FORWARD_DISPLACEMENT = 5.0f * mmPerInch;   // eg: Camera is 4 Inches in front of robot center
         final float CAMERA_VERTICAL_DISPLACEMENT = 5.0f * mmPerInch;   // eg: Camera is 8 Inches above ground
-        final float CAMERA_LEFT_DISPLACEMENT     = 5.75f * mmPerInch;     // eg: Camera is ON the robot's center line
+        final float CAMERA_LEFT_DISPLACEMENT = 5.75f * mmPerInch;     // eg: Camera is ON the robot's center line
 
         OpenGLMatrix robotFromCamera = OpenGLMatrix
-                    .translation(CAMERA_FORWARD_DISPLACEMENT, CAMERA_LEFT_DISPLACEMENT, CAMERA_VERTICAL_DISPLACEMENT)
-                    .multiplied(Orientation.getRotationMatrix(EXTRINSIC, YZX, DEGREES, phoneYRotate, phoneZRotate, phoneXRotate));
+                .translation(CAMERA_FORWARD_DISPLACEMENT, CAMERA_LEFT_DISPLACEMENT, CAMERA_VERTICAL_DISPLACEMENT)
+                .multiplied(Orientation.getRotationMatrix(EXTRINSIC, YZX, DEGREES, phoneYRotate, phoneZRotate, phoneXRotate));
 
         /**  Let all the trackable listeners know where the phone is.  */
         for (VuforiaTrackable trackable : allTrackables) {
@@ -356,14 +357,13 @@ public class VuforiaTemplate extends LinearOpMode {
         }
         //-------------------------------------NON VUFORIA------------------------------------------
         distRight = hardwareMap.get(DistanceSensor.class, "rightDistanceSensor");
-        Rev2mDistanceSensor sensorTimeOfFlight = (Rev2mDistanceSensor)distRight;
+        Rev2mDistanceSensor sensorTimeOfFlight = (Rev2mDistanceSensor) distRight;
         // distRight.getDistance(DistanceUnit.MM) Implement as separate method?
 
-        initMotors();
-        initServos();
 
-        sideGrabber.setPosition(0.5f);
-        intakeLift.setPosition(1);
+
+        //sideGrabber.setPosition(0.5f);
+        //intakeLift.setPosition(1);
 
 
         //------------------------------------NON VUFORIA -------------------------------------------
@@ -373,25 +373,31 @@ public class VuforiaTemplate extends LinearOpMode {
         // CONSEQUENTLY do not put any driving commands in this loop.
         // To restore the normal opmode structure, just un-comment the following line:
 
-         //waitForStart();
+        waitForStart();
+        initMotors();
 
+        initServos();
+
+
+
+        //sleep(500);
+        strafeInch(23, 0.30f, 7);
         // Note: To use the remote camera preview:
         // AFTER you hit Init on the Driver Station, use the "options menu" to select "Camera Stream"
         // Tap the preview window to receive a fresh image.
-
         targetsSkyStone.activate();
         while (!isStopRequested()) {
 
             // check all the trackable targets to see which one (if any) is visible.
             targetVisible = false;
             for (VuforiaTrackable trackable : allTrackables) {
-                if (((VuforiaTrackableDefaultListener)trackable.getListener()).isVisible()) {
+                if (((VuforiaTrackableDefaultListener) trackable.getListener()).isVisible()) {
                     telemetry.addData("Visible Target", trackable.getName());
                     targetVisible = true;
 
                     // getUpdatedRobotLocation() will return null if no new information is available since
                     // the last time that call was made, or if the trackable is not currently visible.
-                    OpenGLMatrix robotLocationTransform = ((VuforiaTrackableDefaultListener)trackable.getListener()).getUpdatedRobotLocation();
+                    OpenGLMatrix robotLocationTransform = ((VuforiaTrackableDefaultListener) trackable.getListener()).getUpdatedRobotLocation();
                     if (robotLocationTransform != null) {
                         lastLocation = robotLocationTransform;
                     }
@@ -416,7 +422,6 @@ public class VuforiaTemplate extends LinearOpMode {
                 zPos = translation.get(2);
 
 
-
                 //-------------------------------------------------------NON VUFORIA ----------------------------------------
 
                 // express the rotation of the robot in degrees.
@@ -432,46 +437,45 @@ public class VuforiaTemplate extends LinearOpMode {
                 }
 
                 newcode--------------------------------------------------------*/
+                telemetry.update();
+                //stopMove();
+                //moveToYCoord();
+                //moveToXCoord();
 
-
-
-            }
-            else {
-                telemetry.addData("Visible Target", "none");
-            }
-            telemetry.update();
-
-            waitForStart();
-            setBrake();
-            //wait(500);
-
-            strafeInch(22, 0.30f, 7);
-            if (!targetVisible){
-                moveInch (28,0.2f, 10);
-            }
-            else if (targetVisible) {
+                //pullOut();
+                //bringBlockUnderBridge();
+                //scanForSecondBlock();
+                //moveToYCoord();
+                //moveToXCoord();
+                //pullOut();
+                //bringBlockUnderBridge();
+                //parkUnderBridge();
                 moveToYCoord();
 
-            }
-            //stopMove();
-            //moveToYCoord();
-            //moveToXCoord();
 
-            //pullOut();
-            //bringBlockUnderBridge();
-            //scanForSecondBlock();
-            //moveToYCoord();
-            //moveToXCoord();
-            //pullOut();
-            //bringBlockUnderBridge();
-            //parkUnderBridge();
+            } else {
+                telemetry.addData("Visible Target", "none");
+                telemetry.update();
+                moveInch(20, 0.05f,  7);
+
+            }
+            telemetry.update();
 
 
         }
 
+
+
+
         // Disable Tracking when we are done;
         targetsSkyStone.deactivate();
     }
+    //setBrake();
+    //wait(500);
+
+
+
+
 
     //----------------------------------NON VUFORIA -----------------------------------------------
     public void moveInch(int inches, float speed, float timeout) {
@@ -613,20 +617,22 @@ public class VuforiaTemplate extends LinearOpMode {
                 }
             }*/
         //}
-
-          if (yPos > 30) {
+//FIX THIS!!!!!!!!!!!!!!!!
+          if (yPos > 30) { // in mm
               if(switchNav = true) {
                   //drive.move("RIGHT", 0.1f);
-                  moveInch(18,0.2f, 5 );
+                  moveInch(18,0.2f, 15 );
+                  update();
               }
               else if (switchNav = false) {
                   setBrake();
               }
 
-        } else if (yPos < -30) {
+        } else if (yPos < -30) { //in mm
               if (switchNav = true) {
                   //drive.move("LEFT", 0.1f);
-                  moveInch(-18, 0.2f, 5);
+                  moveInch(-18, 0.2f, 15);
+                  update();
               }
               else if (switchNav = false) {
                   setBrake();
