@@ -1,10 +1,10 @@
-package org.firstinspires.ftc.teamcode.acmerobotics.roadrunnerquickstart.drive.tank;
+package org.firstinspires.ftc.teamcode.ftc2753.roadrunner.drive.mecanum;
 
-import static org.firstinspires.ftc.teamcode.acmerobotics.roadrunnerquickstart.drive.DriveConstants.BASE_CONSTRAINTS;
-import static org.firstinspires.ftc.teamcode.acmerobotics.roadrunnerquickstart.drive.DriveConstants.TRACK_WIDTH;
-import static org.firstinspires.ftc.teamcode.acmerobotics.roadrunnerquickstart.drive.DriveConstants.kA;
-import static org.firstinspires.ftc.teamcode.acmerobotics.roadrunnerquickstart.drive.DriveConstants.kStatic;
-import static org.firstinspires.ftc.teamcode.acmerobotics.roadrunnerquickstart.drive.DriveConstants.kV;
+import static org.firstinspires.ftc.teamcode.ftc2753.roadrunner.drive.DriveConstants.BASE_CONSTRAINTS;
+import static org.firstinspires.ftc.teamcode.ftc2753.roadrunner.drive.DriveConstants.TRACK_WIDTH;
+import static org.firstinspires.ftc.teamcode.ftc2753.roadrunner.drive.DriveConstants.kA;
+import static org.firstinspires.ftc.teamcode.ftc2753.roadrunner.drive.DriveConstants.kStatic;
+import static org.firstinspires.ftc.teamcode.ftc2753.roadrunner.drive.DriveConstants.kV;
 
 import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.canvas.Canvas;
@@ -13,8 +13,8 @@ import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
 import com.acmerobotics.roadrunner.control.PIDCoefficients;
 import com.acmerobotics.roadrunner.control.PIDFController;
 import com.acmerobotics.roadrunner.drive.DriveSignal;
-import com.acmerobotics.roadrunner.drive.TankDrive;
-import com.acmerobotics.roadrunner.followers.TankPIDVAFollower;
+import com.acmerobotics.roadrunner.drive.MecanumDrive;
+import com.acmerobotics.roadrunner.followers.HolonomicPIDVAFollower;
 import com.acmerobotics.roadrunner.followers.TrajectoryFollower;
 import com.acmerobotics.roadrunner.geometry.Pose2d;
 import com.acmerobotics.roadrunner.profile.MotionProfile;
@@ -23,22 +23,21 @@ import com.acmerobotics.roadrunner.profile.MotionState;
 import com.acmerobotics.roadrunner.trajectory.Trajectory;
 import com.acmerobotics.roadrunner.trajectory.TrajectoryBuilder;
 import com.acmerobotics.roadrunner.trajectory.constraints.DriveConstraints;
-import com.acmerobotics.roadrunner.trajectory.constraints.TankConstraints;
+import com.acmerobotics.roadrunner.trajectory.constraints.MecanumConstraints;
 import com.acmerobotics.roadrunner.util.NanoClock;
 import com.qualcomm.robotcore.hardware.DcMotor;
-import org.firstinspires.ftc.teamcode.acmerobotics.roadrunnerquickstart.util.DashboardUtil;
+import org.firstinspires.ftc.teamcode.util.DashboardUtil;
 
 import java.util.ArrayList;
 import java.util.List;
 
 /*
- * Base class with shared functionality for sample tank drives. All hardware-specific details are
+ * Base class with shared functionality for sample mecanum drives. All hardware-specific details are
  * handled in subclasses.
  */
 @Config
-public abstract class SampleTankDriveBase extends TankDrive {
-    public static PIDCoefficients AXIAL_PID = new PIDCoefficients(0, 0, 0);
-    public static PIDCoefficients CROSS_TRACK_PID = new PIDCoefficients(0, 0, 0);
+public abstract class SampleMecanumDriveBase extends MecanumDrive {
+    public static PIDCoefficients TRANSLATIONAL_PID = new PIDCoefficients(0, 0, 0);
     public static PIDCoefficients HEADING_PID = new PIDCoefficients(0, 0, 0);
 
 
@@ -63,7 +62,7 @@ public abstract class SampleTankDriveBase extends TankDrive {
     private List<Double> lastWheelPositions;
     private double lastTimestamp;
 
-    public SampleTankDriveBase() {
+    public SampleMecanumDriveBase() {
         super(kV, kA, kStatic, TRACK_WIDTH);
 
         dashboard = FtcDashboard.getInstance();
@@ -76,8 +75,8 @@ public abstract class SampleTankDriveBase extends TankDrive {
         turnController = new PIDFController(HEADING_PID);
         turnController.setInputBounds(0, 2 * Math.PI);
 
-        constraints = new TankConstraints(BASE_CONSTRAINTS, TRACK_WIDTH);
-        follower = new TankPIDVAFollower(AXIAL_PID, CROSS_TRACK_PID);
+        constraints = new MecanumConstraints(BASE_CONSTRAINTS, TRACK_WIDTH);
+        follower = new HolonomicPIDVAFollower(TRANSLATIONAL_PID, TRANSLATIONAL_PID, HEADING_PID);
     }
 
     public TrajectoryBuilder trajectoryBuilder() {
@@ -151,6 +150,9 @@ public abstract class SampleTankDriveBase extends TankDrive {
                 double t = clock.seconds() - turnStart;
 
                 MotionState targetState = turnProfile.get(t);
+
+                turnController.setTargetPosition(targetState.getX());
+
                 double targetOmega = targetState.getV();
                 double targetAlpha = targetState.getA();
                 double correction = turnController.update(currentPose.getHeading(), targetOmega);

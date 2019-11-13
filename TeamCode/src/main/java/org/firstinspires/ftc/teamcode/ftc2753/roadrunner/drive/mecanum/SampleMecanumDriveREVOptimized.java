@@ -1,10 +1,10 @@
-package org.firstinspires.ftc.teamcode.acmerobotics.roadrunnerquickstart.drive.mecanum;
+package org.firstinspires.ftc.teamcode.ftc2753.roadrunner.drive.mecanum;
 
-import static org.firstinspires.ftc.teamcode.acmerobotics.roadrunnerquickstart.drive.DriveConstants.encoderTicksToInches;
 
 import android.support.annotation.NonNull;
 import com.acmerobotics.roadrunner.control.PIDCoefficients;
-import com.acmerobotics.roadrunner.localization.ThreeTrackingWheelLocalizer;
+import com.acmerobotics.roadrunner.geometry.Pose2d;
+import com.acmerobotics.roadrunner.localization.Localizer;
 import com.qualcomm.hardware.bosch.BNO055IMU;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.HardwareMap;
@@ -13,11 +13,19 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import org.firstinspires.ftc.robotcore.internal.network.ControlHubDeviceNameManager;
-import org.firstinspires.ftc.teamcode.acmerobotics.roadrunnerquickstart.util.LynxModuleUtil;
+import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
+import org.firstinspires.ftc.teamcode.ftc2753.roadrunner.util.AxesSigns;
+import org.firstinspires.ftc.teamcode.ftc2753.roadrunner.util.BNO055IMUUtil;
+import org.firstinspires.ftc.teamcode.util.LynxModuleUtil;
+import org.jetbrains.annotations.NotNull;
 import org.openftc.revextensions2.ExpansionHubEx;
 import org.openftc.revextensions2.ExpansionHubMotor;
 import org.openftc.revextensions2.RevBulkData;
+
+import static org.firstinspires.ftc.teamcode.ftc2753.roadrunner.drive.DriveConstants.MOTOR_VELO_PID;
+import static org.firstinspires.ftc.teamcode.ftc2753.roadrunner.drive.DriveConstants.RUN_USING_ENCODER;
+import static org.firstinspires.ftc.teamcode.ftc2753.roadrunner.drive.DriveConstants.encoderTicksToInches;
+import static org.firstinspires.ftc.teamcode.ftc2753.roadrunner.drive.DriveConstants.getMotorVelocityF;
 
 /*
  * Optimized mecanum drive implementation for REV ExHs. The time savings may significantly improve
@@ -27,8 +35,6 @@ public class SampleMecanumDriveREVOptimized extends SampleMecanumDriveBase {
     private ExpansionHubEx hub;
     private ExpansionHubMotor leftFront, leftRear, rightRear, rightFront;
     private List<ExpansionHubMotor> motors;
-    private List<ExpansionHubMotor> rightMotors;
-    private List<ExpansionHubMotor> leftMotors;
     private BNO055IMU imu;
 
     public SampleMecanumDriveREVOptimized(HardwareMap hardwareMap) {
@@ -36,7 +42,7 @@ public class SampleMecanumDriveREVOptimized extends SampleMecanumDriveBase {
 
         LynxModuleUtil.ensureMinimumFirmwareVersion(hardwareMap);
 
-        // TODO: adjust the names of the following hardware devices to match your configuration
+        // Done: adjust the names of the following hardware devices to match your configuration
         // for simplicity, we assume that the desired IMU and drive motors are on the same hub
         // if your motors are split between hubs, **you will need to add another bulk read**
         hub = hardwareMap.get(ExpansionHubEx.class, "Control");
@@ -46,11 +52,10 @@ public class SampleMecanumDriveREVOptimized extends SampleMecanumDriveBase {
         parameters.angleUnit = BNO055IMU.AngleUnit.RADIANS;
         imu.initialize(parameters);
 
-        // TODO: if your hub is mounted vertically, remap the IMU axes so that the z-axis points
+        // Done: if your hub is mounted vertically, remap the IMU axes so that the z-axis points
         // upward (normal to the floor) using a command like the following:
-        // BNO055IMUUtil.remapAxes(imu, AxesOrder.XYZ, AxesSigns.NPN);
+        BNO055IMUUtil.remapAxes(imu, AxesOrder.ZYX, AxesSigns.NPN);
 
-        //TODO: adjust the names of the following motors to match your configuration
         leftFront = hardwareMap.get(ExpansionHubMotor.class, "left_front");
         leftRear = hardwareMap.get(ExpansionHubMotor.class, "left_back");
         rightRear = hardwareMap.get(ExpansionHubMotor.class, "right_back");
@@ -58,22 +63,23 @@ public class SampleMecanumDriveREVOptimized extends SampleMecanumDriveBase {
 
         motors = Arrays.asList(leftFront, leftRear, rightRear, rightFront);
 
-        rightMotors = Arrays.asList(rightFront, rightRear);
-        leftMotors = Arrays.asList(leftFront, leftRear);
-
-
         for (ExpansionHubMotor motor : motors) {
-            motor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+            if (RUN_USING_ENCODER) {
+                motor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+            }
             motor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         }
 
+        if (RUN_USING_ENCODER && MOTOR_VELO_PID != null) {
+            setPIDCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, MOTOR_VELO_PID);
+        }
+
+        // DONE: reverse any motors using DcMotor.setDirection()
         rightRear.setDirection(DcMotor.Direction.REVERSE);
         rightFront.setDirection(DcMotor.Direction.REVERSE);
 
-        // TODO: set the tuned coefficients from DriveVelocityPIDTuner if using RUN_USING_ENCODER
-        // setPIDCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, ...);
-
-        // TODO: if desired, use setLocalizer() to change the localization method
+        // DONE: if desired, use setLocalizer() to change the localization method
+        // 11/12/19 - currently part of the #nodometry gang
         // for instance, setLocalizer(new ThreeTrackingWheelLocalizer(...));
     }
 
@@ -87,7 +93,7 @@ public class SampleMecanumDriveREVOptimized extends SampleMecanumDriveBase {
     public void setPIDCoefficients(DcMotor.RunMode runMode, PIDCoefficients coefficients) {
         for (ExpansionHubMotor motor : motors) {
             motor.setPIDFCoefficients(runMode, new PIDFCoefficients(
-                    coefficients.kP, coefficients.kI, coefficients.kD, 1
+                    coefficients.kP, coefficients.kI, coefficients.kD, getMotorVelocityF()
             ));
         }
     }

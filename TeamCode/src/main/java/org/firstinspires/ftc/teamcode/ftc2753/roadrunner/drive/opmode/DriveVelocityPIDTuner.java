@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode.acmerobotics.roadrunnerquickstart.drive.opmode;
+package org.firstinspires.ftc.teamcode.ftc2753.roadrunner.drive.opmode;
 
 import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.config.Config;
@@ -13,32 +13,32 @@ import com.acmerobotics.roadrunner.profile.MotionProfileGenerator;
 import com.acmerobotics.roadrunner.profile.MotionState;
 import com.acmerobotics.roadrunner.util.NanoClock;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
-import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.util.RobotLog;
 
-import org.firstinspires.ftc.teamcode.acmerobotics.roadrunnerquickstart.drive.mecanum.SampleMecanumDriveBase;
-import org.firstinspires.ftc.teamcode.acmerobotics.roadrunnerquickstart.drive.mecanum.SampleMecanumDriveREV;
-import org.firstinspires.ftc.teamcode.acmerobotics.roadrunnerquickstart.drive.DriveConstants;
+import org.firstinspires.ftc.teamcode.ftc2753.roadrunner.drive.DriveConstants;
+import org.firstinspires.ftc.teamcode.ftc2753.roadrunner.drive.mecanum.SampleMecanumDriveBase;
+import org.firstinspires.ftc.teamcode.ftc2753.roadrunner.drive.mecanum.SampleMecanumDriveREVOptimized;
 
 import java.util.List;
 
-import static org.firstinspires.ftc.teamcode.acmerobotics.roadrunnerquickstart.drive.DriveConstants.kV;
+import static org.firstinspires.ftc.teamcode.ftc2753.roadrunner.drive.DriveConstants.RUN_USING_ENCODER;
+import static org.firstinspires.ftc.teamcode.ftc2753.roadrunner.drive.DriveConstants.kV;
 
 /*
  * This routine is designed to tune the PID coefficients used by the REV Expansion Hubs for closed-
  * loop velocity control. Although it may seem unnecessary, tuning these coefficients is just as
  * important as the positional parameters. Like the other manual tuning routines, this op mode
  * relies heavily upon the dashboard. To access the dashboard, connect your computer to the RC's
- * WiFi network and navigate to https://192.168.49.1:8080/dash in your browser. Once you've
- * successfully connected, start the program, and your robot will begin moving forward and backward
+ * WiFi network and navigate to https://192.168.49.1:8080/dash
+ * (for control hub its https://192.168.43.1:8080/dash)in your browser.
+ * Once you've successfully connected, start the program, and your robot will begin moving forward and backward
  * according to a motion profile. Your job is to graph the velocity errors over time and adjust the
  * PID coefficients. Once you've found a satisfactory set of gains, add them to your drive class
- * ctor.
+ * constructor.
  */
 @Config
-@Disabled
 @Autonomous(group = "drive")
 public class DriveVelocityPIDTuner extends LinearOpMode {
     public static double DISTANCE = 72;
@@ -127,15 +127,20 @@ public class DriveVelocityPIDTuner extends LinearOpMode {
 
     @Override
     public void runOpMode() {
+        if (!RUN_USING_ENCODER) {
+            RobotLog.setGlobalErrorMsg("%s does not need to be run if the built-in motor velocity" +
+                    "PID is not in use", getClass().getSimpleName());
+        }
+
         telemetry = new MultipleTelemetry(telemetry, dashboard.getTelemetry());
 
-        drive = new SampleMecanumDriveREV(hardwareMap);
+        drive = new SampleMecanumDriveREVOptimized(hardwareMap);
 
         addPidVariable();
 
         NanoClock clock = NanoClock.system();
 
-        telemetry.log().add("Ready!");
+        telemetry.addLine("Ready!");
         telemetry.update();
         telemetry.clearAll();
 
