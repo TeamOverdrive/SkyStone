@@ -8,6 +8,7 @@ import com.acmerobotics.roadrunner.tuning.AccelRegression;
 import com.acmerobotics.roadrunner.tuning.RampRegression;
 import com.acmerobotics.roadrunner.util.NanoClock;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.util.RobotLog;
 
@@ -30,8 +31,10 @@ import static org.firstinspires.ftc.teamcode.ftc2753.roadrunner.drive.DriveConst
  *   4. Adjust the encoder data based on the velocity tuning data and find kA with another linear
  *      regression.
  */
+
 @Config
 @Autonomous(group = "drive")
+@Disabled
 public class DriveFeedforwardTuner extends LinearOpMode {
     public static final double MAX_POWER = 0.7;
     public static final double DISTANCE = 100;

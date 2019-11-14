@@ -3,8 +3,11 @@ package org.firstinspires.ftc.teamcode.ftc2753.roadrunner.drive.mecanum;
 
 import android.support.annotation.NonNull;
 import com.acmerobotics.roadrunner.control.PIDCoefficients;
+import com.acmerobotics.roadrunner.drive.MecanumDrive;
+import com.acmerobotics.roadrunner.drive.MecanumDrive.MecanumLocalizer;
 import com.acmerobotics.roadrunner.geometry.Pose2d;
 import com.acmerobotics.roadrunner.localization.Localizer;
+import com.acmerobotics.roadrunner.localization.ThreeTrackingWheelLocalizer;
 import com.qualcomm.hardware.bosch.BNO055IMU;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.HardwareMap;
@@ -80,7 +83,7 @@ public class SampleMecanumDriveREVOptimized extends SampleMecanumDriveBase {
 
         // DONE: if desired, use setLocalizer() to change the localization method
         // 11/12/19 - currently part of the #nodometry gang
-        // for instance, setLocalizer(new ThreeTrackingWheelLocalizer(...));
+        //setLocalizer(new MecanumLocalizer(, true));
     }
 
     @Override
