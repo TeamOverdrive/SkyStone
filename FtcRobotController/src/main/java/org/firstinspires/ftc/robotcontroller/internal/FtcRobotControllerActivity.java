@@ -705,9 +705,6 @@ public class FtcRobotControllerActivity extends Activity
       file = RobotConfigFile.noConfig(cfgFileMgr);
       hardwareFactory.setXmlPullParser(file.getXml());
       cfgFileMgr.setActiveConfigAndUpdateUI(false, file);
-
-      //FTC Dashboard
-      FtcDashboard.attachEventLoop(eventLoop);
     }
 
     OpModeRegister userOpModeRegister = createOpModeRegister();
@@ -719,6 +716,10 @@ public class FtcRobotControllerActivity extends Activity
 
     passReceivedUsbAttachmentsToEventLoop();
     AndroidBoard.showErrorIfUnknownControlHub();
+
+
+    //FTC Dashboard
+    FtcDashboard.attachEventLoop(eventLoop);
   }
 
   protected OpModeRegister createOpModeRegister() {
