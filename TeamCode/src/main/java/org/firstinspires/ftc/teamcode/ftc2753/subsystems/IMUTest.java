@@ -5,6 +5,7 @@ import android.view.View;
 import com.qualcomm.hardware.bosch.BNO055IMU;
 import com.qualcomm.hardware.bosch.JustLoggingAccelerationIntegrator;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DistanceSensor;
@@ -24,10 +25,9 @@ import org.firstinspires.ftc.teamcode.ftc2753.subsystems.DriveTrain;
 
 import static org.firstinspires.ftc.robotcore.external.navigation.AxesOrder.XYZ;
 
+@Disabled
+@Autonomous(name = "IMUtest", group = "auto")
 public class IMUTest extends LinearOpMode {
-
-
-    @Autonomous(name = "Blue Foundation", group = "auto")
 
 
     DriveTrain drive = new DriveTrain();
@@ -78,6 +78,7 @@ public class IMUTest extends LinearOpMode {
      * use a color sensor on your robot
      */
     View relativeLayout;
+
 
     public void runOpMode() throws InterruptedException {
 
@@ -450,5 +451,4 @@ public class IMUTest extends LinearOpMode {
     }
 
 
-}
 }

@@ -23,7 +23,10 @@ import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
+import org.firstinspires.ftc.teamcode.ftc2753.subsystems.AutoDriveTrain;
 import org.firstinspires.ftc.teamcode.ftc2753.subsystems.DriveTrain;
+import org.firstinspires.ftc.teamcode.ftc2753.subsystems.Robot;
+
 import com.qualcomm.hardware.modernrobotics.ModernRoboticsI2cGyro;
 
 
@@ -33,55 +36,9 @@ import static org.firstinspires.ftc.robotcore.external.navigation.AxesOrder.XYZ;
 
 public class RedFoundation extends LinearOpMode {
 
-    DriveTrain drive = new DriveTrain();
-
-    private ElapsedTime runtime = new ElapsedTime();
-    private ElapsedTime waittime = new ElapsedTime();
-
-    BNO055IMU imu;
-
-    private DistanceSensor distRight;
-    private DistanceSensor distLeft;
-
-    DcMotor motorBackLeft;
-    DcMotor motorBackRight;
-    DcMotor motorFrontLeft;
-    DcMotor motorFrontRight;
-
-    private Servo sideGrabber;
-
-    boolean wasYDown = false;
-
-    boolean targetFound = false;
-    Orientation             lastAngles = new Orientation();
-    double                  globalAngle, power = .30, correction;
-
-    private Servo sensorRotator;
-    private Servo foundationLeft;
-    private Servo foundationRight;
-
-    private float intakeSpeed;
-
     Orientation angles;
 
-    /*
-    note that with the config annotation above public class Teleop2,
-    the below public static non-final variables can be edited on the fly with FTC Dashboard
-    */
-    //sideUp and sideDown are used for both the stone side grabber and the sensor array actuator
-    public static double sideUp = 180/270;
-    public static double sideDown = 0/270;
-    public static double grabberDiagnostic = 0.5; //grabber is in continuous mode rn
-
-    //values for the foundation grabber servos; note foundationGrab() and foundationRelease() methods
-    public static double foundationUp = 1;
-    public static double foundationDown = 0;
-    public static double foundationDiagnostic = 0.5;
-
-    static final double     P_TURN_COEFF            = 0.1;     // Larger is more responsive, but also less stable
-    static final double     P_DRIVE_COEFF           = 0.15;     // Larger is more responsive, but also less stable
-    static final double     HEADING_THRESHOLD       = 1 ;      // As tight as we can make it with an integer gyro
-
+    Robot robot = new Robot();
 
     NormalizedColorSensor colorSensor;
     /** The relativeLayout field is used to aid in providing interesting visual feedback
@@ -91,478 +48,85 @@ public class RedFoundation extends LinearOpMode {
 
     public void runOpMode() throws InterruptedException {
 
-        initMotors();
-        initServos();
-        initIMU();
-
-        foundationLeft.setPosition(0.5f);
-        foundationRight.setPosition(0.5f);
+        robot.servos.releaseFoundation();
 
         // Wait for the start button to be pressed.
         waitForStart();
 
-        moveInch(-20,0.2f,4);
-        drive.move(0);
+        robot.drive.move(-20,0.2f,4);
         update();
 
-        strafeInch(10,0.5f,7);
-
-        moveInch(-14,0.2f,4);
-
-        drive.move(0);
+        robot.drive.strafe("LEFT",10,0.5,7);
         update();
-        foundationLeft.setPosition(0.0f);
-        foundationRight.setPosition(1.0f);
 
-        sleep(1000);
+        robot.drive.move(-14,0.2f,4);
+        update();
 
-        moveInch(30,0.6f,10);
+        robot.drive.move(0);
+        update();
 
-        strafeInch(8,0.6f,3);
+        robot.servos.grabFoundation();
+
+        pause(1);
+
+        robot.drive.move(30,0.6f,10);
+        update();
+
+        robot.drive.strafe("LEFT",8,0.6f,3);
 
         gyroTurn(0.4f,90);
 
-        moveInch(-6,0.4f,2);
-
-        strafeInch(12,0.6f,2);
-
-        drive.move(0);
+        robot.drive.move(-6,0.4f,2);
         update();
 
-        sleep(500);
+        robot.drive.strafe("LEFT", 12,0.6f,2);
 
-        foundationLeft.setPosition(0.5f);
-        foundationRight.setPosition(0.5f);
+        robot.drive.kill();
 
-        strafeInch(12,0.6f,3);
+        pause(0.5f);
 
-        sleep(15000);
+        robot.servos.releaseFoundation();
 
-        moveInch(34,1,3);
+        robot.drive.strafe("LEFT",12,0.6f,3);
+
+        pause(15);
+
+        robot.drive.move(34,1,3);
         update();
 
     }
 
-    public void initMotors() {
-
-        motorBackLeft = hardwareMap.get(DcMotor.class, "left_back");
-        motorBackRight = hardwareMap.get(DcMotor.class, "right_back");
-        motorFrontLeft = hardwareMap.get(DcMotor.class, "left_front");
-        motorFrontRight = hardwareMap.get(DcMotor.class, "right_front");
-
-        motorBackRight.setDirection(DcMotor.Direction.REVERSE);
-        motorFrontRight.setDirection(DcMotor.Direction.REVERSE);
-
-    }
-
-    public void update() {
-        motorFrontLeft.setPower(drive.FrontLeft);
-        motorFrontRight.setPower(drive.FrontRight);
-        motorBackLeft.setPower(drive.BackLeft);
-        motorBackRight.setPower(drive.BackRight);
-
-    }
-
-    public void setBrake() {
-
-        motorFrontRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        motorBackRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        motorFrontLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        motorBackLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-    }
-
-    public void removeBrake() {
-
-        motorFrontLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
-        motorBackRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
-        motorFrontLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
-        motorBackLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
-
-    }
-
-    public void stopMove() {
-
-        motorFrontLeft.setPower(0);
-        motorFrontRight.setPower(0);
-        motorBackLeft.setPower(0);
-        motorBackRight.setPower(0);
-
-    }
-    public void moveInch(int inches, float speed, float timeout) {
-
-        int motorFrontRightTP = motorFrontRight.getCurrentPosition() + (int)(inches * drive.COUNTS_PER_INCH);
-        int motorBackRightTP = motorBackRight.getCurrentPosition() + (int)(inches * drive.COUNTS_PER_INCH);
-        int motorFrontLeftTP = motorFrontLeft.getCurrentPosition() + (int)(inches * drive.COUNTS_PER_INCH);
-        int motorBackLeftTP = motorBackLeft.getCurrentPosition() + (int)(inches * drive.COUNTS_PER_INCH);
-
-        motorFrontRight.setTargetPosition(motorFrontRightTP);
-        motorBackRight.setTargetPosition(motorBackRightTP);
-        motorFrontLeft.setTargetPosition(motorFrontLeftTP);
-        motorBackLeft.setTargetPosition(motorBackLeftTP);
-
-        motorFrontRight.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        motorBackRight.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        motorFrontLeft.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        motorBackLeft.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-
-        this.runtime.reset();
-
-        motorFrontRight.setPower(Math.abs(speed));
-        motorBackRight.setPower(Math.abs(speed));
-        motorFrontLeft.setPower(Math.abs(speed));
-        motorBackLeft.setPower(Math.abs(speed));
-
-
-        while (opModeIsActive() &&
-                (this.runtime.seconds() < timeout) &&
-                (motorFrontRight.isBusy() && motorBackRight.isBusy() && motorFrontLeft.isBusy() && motorBackLeft.isBusy())) {
-
-        }
-
-        motorFrontRight.setPower(0);
-        motorBackRight.setPower(0);
-        motorFrontLeft.setPower(0);
-        motorBackLeft.setPower(0);
-
-        motorFrontRight.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        motorBackRight.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        motorFrontLeft.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        motorBackLeft.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-    }
-    public void turnTo(double angle,BNO055IMU imu) {
-
-        Orientation angles;
-
-        angles = imu.getAngularOrientation(AxesReference.INTRINSIC, XYZ, AngleUnit.DEGREES);
-
-        while (!(angle <= angles.firstAngle + 1) && !(angle >= angles.firstAngle - 1)) {
-            angles = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.YZX, AngleUnit.DEGREES);
-            double relativeTarget = Math.toRadians(angle) - Math.toRadians(angles.firstAngle);
-            if (Math.abs(relativeTarget) > Math.PI) {
-                if (relativeTarget > 0)
-                    relativeTarget = -(Math.PI * 2 - Math.abs(relativeTarget));
-                else if (relativeTarget < 0)
-                    relativeTarget = Math.PI * 2 - Math.abs(relativeTarget);
-            }
-            //what is the issue here, it does not want to work on the math.pi nigerian
-            motorFrontRight.setPower((relativeTarget/Math.PI) * Math.abs(relativeTarget/Math.PI));
-            motorBackRight.setPower((relativeTarget/Math.PI) * Math.abs(relativeTarget/Math.PI));
-            motorFrontLeft.setPower(-((relativeTarget/Math.PI) * Math.abs(relativeTarget/Math.PI)));
-            motorBackLeft.setPower(-((relativeTarget/Math.PI) * Math.abs(relativeTarget/Math.PI)));
-
-
-        }
-
-    }
-
-    public void moveInch(int inchesLeft,int inchesRight, float speed, float timeout) {
-
-        int motorFrontRightTP = motorFrontRight.getCurrentPosition() + (int)(inchesRight * drive.COUNTS_PER_INCH);
-        int motorBackRightTP = motorBackRight.getCurrentPosition() + (int)(inchesRight * drive.COUNTS_PER_INCH);
-        int motorFrontLeftTP = motorFrontLeft.getCurrentPosition() + (int)(inchesLeft * drive.COUNTS_PER_INCH);
-        int motorBackLeftTP = motorBackLeft.getCurrentPosition() + (int)(inchesLeft * drive.COUNTS_PER_INCH);
-
-        motorFrontRight.setTargetPosition(motorFrontRightTP);
-        motorBackRight.setTargetPosition(motorBackRightTP);
-        motorFrontLeft.setTargetPosition(motorFrontLeftTP);
-        motorBackLeft.setTargetPosition(motorBackLeftTP);
-
-        motorFrontRight.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        motorBackRight.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        motorFrontLeft.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        motorBackLeft.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-
-        this.runtime.reset();
-
-        motorFrontRight.setPower(Math.abs(speed));
-        motorBackRight.setPower(Math.abs(speed));
-        motorFrontLeft.setPower(Math.abs(speed));
-        motorBackLeft.setPower(Math.abs(speed));
-
-
-        while (opModeIsActive() &&
-                (this.runtime.seconds() < timeout) &&
-                (motorFrontRight.isBusy() && motorBackRight.isBusy() && motorFrontLeft.isBusy() && motorBackLeft.isBusy())) {
-
-        }
-
-        motorFrontRight.setPower(0);
-        motorBackRight.setPower(0);
-        motorFrontLeft.setPower(0);
-        motorBackLeft.setPower(0);
-
-        motorFrontRight.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        motorBackRight.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        motorFrontLeft.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        motorBackLeft.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-    }
-    public void initIMU() {
-
-        BNO055IMU.Parameters IMUparameters = new BNO055IMU.Parameters();
-        IMUparameters.angleUnit = BNO055IMU.AngleUnit.DEGREES;
-        IMUparameters.accelUnit = BNO055IMU.AccelUnit.METERS_PERSEC_PERSEC;
-        IMUparameters.calibrationDataFile = "BNO055IMUCalibration.json";
-        IMUparameters.loggingEnabled = true;
-        IMUparameters.loggingTag = "IMU";
-
-        imu = hardwareMap.get(BNO055IMU.class, "imu");
-        imu.initialize(IMUparameters);
-
-    }
-
-    //Everything after this is copied
-    private void resetAngle(BNO055IMU imu)
-    {
-        lastAngles = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
-
-        globalAngle = 0;
-    }
-
-    /**
-     * Get current cumulative angle rotation from last reset.
-     * @return Angle in degrees. + = left, - = right.
-     */
-    private double getAngle(BNO055IMU imu)
-    {
-        // We experimentally determined the Z axis is the axis we want to use for heading angle.
-        // We have to process the angle because the imu works in euler angles so the Z axis is
-        // returned as 0 to +180 or 0 to -180 rolling back to -179 or +179 when rotation passes
-        // 180 degrees. We detect this transition and track the total cumulative angle of rotation.
-
-        Orientation angles = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
-
-        double deltaAngle = angles.firstAngle - lastAngles.firstAngle;
-
-        if (deltaAngle < -180)
-            deltaAngle += 360;
-        else if (deltaAngle > 180)
-            deltaAngle -= 360;
-
-        globalAngle += deltaAngle;
-
-        lastAngles = angles;
-
-        return globalAngle;
-    }
-
-    /**
-     * See if we are moving in a straight line and if not return a power correction value.
-     * @return Power adjustment, + is adjust left - is adjust right.
-     */
-
-    private void rotate(int degrees, double power,BNO055IMU imu)
-    {
-        double  leftPower, rightPower;
-
-        // restart imu movement tracking.
-        resetAngle(imu);
-
-        // getAngle() returns + when rotating counter clockwise (left) and - when rotating
-        // clockwise (right).
-
-        if (degrees < 0)
-        {   // turn right.
-            leftPower = power;
-            rightPower = -power;
-        }
-        else if (degrees > 0)
-        {   // turn left.
-            leftPower = -power;
-            rightPower = power;
-        }
-        else return;
-
-        // set power to rotate.
-        motorBackLeft.setPower(leftPower);
-        motorFrontLeft.setPower(leftPower);
-        motorBackRight.setPower(rightPower);
-        motorFrontRight.setPower(rightPower);
-
-        // rotate until turn is completed.
-        if (degrees < 0)
-        {
-            // On right turn we have to get off zero first.
-            while (opModeIsActive() && getAngle(imu) == 0) {}
-
-            while (opModeIsActive() && getAngle(imu) > degrees) {}
-        }
-        else    // left turn.
-            while (opModeIsActive() && getAngle(imu) < degrees) {}
-
-        // turn the motors off.
-        motorBackLeft.setPower(0);
-        motorFrontLeft.setPower(0);
-        motorBackRight.setPower(0);
-        motorFrontRight.setPower(0);
-
-        // wait for rotation to stop.
-        sleep(400);
-
-        // reset angle tracking on new heading.
-        resetAngle(imu);
-    }
-    public void initServos(){
-        sideGrabber = hardwareMap.get(ServoImplEx.class, "sideGrabber");
-        sensorRotator = hardwareMap.get(ServoImplEx.class, "sensor");
-        foundationLeft = hardwareMap.get(ServoImplEx.class, "foundationLeft");
-        foundationRight = hardwareMap.get(ServoImplEx.class, "foundationRight");
-    }
-    public void strafeInch(int inches, float speed, float timeout) {
-
-        int motorFrontRightTP = motorFrontRight.getCurrentPosition() + (int)(inches * drive.COUNTS_PER_INCH);
-        int motorBackRightTP = motorBackRight.getCurrentPosition() + (int)(-inches * drive.COUNTS_PER_INCH);
-        int motorFrontLeftTP = motorFrontLeft.getCurrentPosition() + (int)(-inches * drive.COUNTS_PER_INCH);
-        int motorBackLeftTP = motorBackLeft.getCurrentPosition() + (int)(inches * drive.COUNTS_PER_INCH);
-
-        motorFrontRight.setTargetPosition(motorFrontRightTP);
-        motorBackRight.setTargetPosition(motorBackRightTP);
-        motorFrontLeft.setTargetPosition(motorFrontLeftTP);
-        motorBackLeft.setTargetPosition(motorBackLeftTP);
-
-        motorFrontRight.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        motorBackRight.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        motorFrontLeft.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        motorBackLeft.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-
-        this.runtime.reset();
-
-        motorFrontRight.setPower(Math.abs(speed));
-        motorBackRight.setPower(Math.abs(speed));
-        motorFrontLeft.setPower(Math.abs(speed));
-        motorBackLeft.setPower(Math.abs(speed));
-
-
-        while (opModeIsActive() &&
-                (this.runtime.seconds() < timeout) &&
-                (motorFrontRight.isBusy() && motorBackRight.isBusy() && motorFrontLeft.isBusy() && motorBackLeft.isBusy())) {
-
-        }
-
-        motorFrontRight.setPower(0);
-        motorBackRight.setPower(0);
-        motorFrontLeft.setPower(0);
-        motorBackLeft.setPower(0);
-
-        motorFrontRight.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        motorBackRight.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        motorFrontLeft.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        motorBackLeft.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-    }
     public void gyroTurn (  double speed, double angle) {
 
         // keep looping while we are still active, and not on heading.
-        angles = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
-        while (opModeIsActive() && !onHeading(speed, angle, P_TURN_COEFF, angles)) {
+        angles = robot.imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
+        while (opModeIsActive() && !robot.drive.onHeading(speed, angle, angles)) {
             // Update telemetry & Allow time for other processes to run.
             telemetry.update();
-            angles = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
+            angles = robot.imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
         }
     }
+    public void update() {
+        robot.drive.motorFrontRight.setPower(Math.abs(robot.drive.speed));
+        robot.drive.motorBackRight.setPower(Math.abs(robot.drive.speed));
+        robot.drive.motorFrontLeft.setPower(Math.abs(robot.drive.speed));
+        robot.drive.motorBackLeft.setPower(Math.abs(robot.drive.speed));
 
-    /**
-     *  Method to obtain & hold a heading for a finite amount of time
-     *  Move will stop once the requested time has elapsed
-     *
-     * @param speed      Desired speed of turn.
-     * @param angle      Absolute Angle (in Degrees) relative to last gyro reset.
-     *                   0 = fwd. +ve is CCW from fwd. -ve is CW from forward.
-     *                   If a relative angle is required, add/subtract from current heading.
-     * @param holdTime   Length of time (in seconds) to hold the specified heading.
-     */
-    public void gyroHold( double speed, double angle, double holdTime) {
+        ElapsedTime runtime = new ElapsedTime();
 
-        ElapsedTime holdTimer = new ElapsedTime();
+        while (opModeIsActive() &&
+                (runtime.seconds() < robot.drive.timeout) &&
+                (robot.drive.motorFrontRight.isBusy() && robot.drive.motorBackRight.isBusy() && robot.drive.motorFrontLeft.isBusy() && robot.drive.motorBackLeft.isBusy())) {
 
-        // keep looping while we have time remaining.
-        holdTimer.reset();
-        while (opModeIsActive() && (holdTimer.time() < holdTime)) {
-            // Update telemetry & Allow time for other processes to run.
-            onHeading(speed, angle, P_TURN_COEFF, angles);
-            telemetry.update();
         }
 
-        // Stop all motion;
-        motorBackLeft.setPower(0);
-        motorFrontLeft.setPower(0);
-        motorBackRight.setPower(0);
-        motorFrontRight.setPower(0);
+        robot.drive.motorFrontRight.setPower(0);
+        robot.drive.motorBackRight.setPower(0);
+        robot.drive.motorFrontLeft.setPower(0);
+        robot.drive.motorBackLeft.setPower(0);
     }
-
-    /**
-     * Perform one cycle of closed loop heading control.
-     *
-     * @param speed     Desired speed of turn.
-     * @param angle     Absolute Angle (in Degrees) relative to last gyro reset.
-     *                  0 = fwd. +ve is CCW from fwd. -ve is CW from forward.
-     *                  If a relative angle is required, add/subtract from current heading.
-     * @param PCoeff    Proportional Gain coefficient
-     * @return
-     */
-    boolean onHeading(double speed, double angle, double PCoeff, Orientation angles) {
-        double   error ;
-        double   steer ;
-        boolean  onTarget = false ;
-        double leftSpeed;
-        double rightSpeed;
-
-        // determine turn power based on +/- error
-        error = getError(angle,angles);
-
-        if (Math.abs(error) <= HEADING_THRESHOLD) {
-            steer = 0.0;
-            leftSpeed  = 0.0;
-            rightSpeed = 0.0;
-            onTarget = true;
-        }
-        else {
-            steer = getSteer(error, PCoeff);
-            rightSpeed  = speed * steer;
-            leftSpeed   = -rightSpeed;
-        }
-
-        // Send desired speeds to motors.
-        motorBackLeft.setPower(leftSpeed);
-        motorFrontLeft.setPower(leftSpeed);
-        motorBackRight.setPower(rightSpeed);
-        motorFrontRight.setPower(rightSpeed);
-
-        // Display it for the driver.
-        telemetry.addData("Target", "%5.2f", angle);
-        telemetry.addData("Err/St", "%5.2f/%5.2f", error, steer);
-        telemetry.addData("Speed.", "%5.2f:%5.2f", leftSpeed, rightSpeed);
-
-        return onTarget;
+    public void pause(float seconds) {
+        ElapsedTime runtime = new ElapsedTime();
+        while (opModeIsActive() && (runtime.seconds() < seconds)) {}
     }
-
-    /**
-     * getError determines the error between the target angle and the robot's current heading
-     * @param   targetAngle  Desired angle (relative to global reference established at last Gyro Reset).
-     * @return  error angle: Degrees in the range +/- 180. Centered on the robot's frame of reference
-     *          +ve error means the robot should turn LEFT (CCW) to reduce error.
-     */
-    public double getError(double targetAngle, Orientation angles) {
-
-        double robotError;
-
-        // calculate error in -179 to +180 range  (
-        robotError = targetAngle - angles.firstAngle;
-        while (robotError > 180)  robotError -= 360;
-        while (robotError <= -180) robotError += 360;
-        return robotError;
-    }
-
-    /**
-     * returns desired steering force.  +/- 1 range.  +ve = steer left
-     * @param error   Error angle in robot relative degrees
-     * @param PCoeff  Proportional Gain Coefficient
-     * @return
-     */
-    public double getSteer(double error, double PCoeff) {
-        return Range.clip(error * PCoeff, -1, 1);
-    }
-
-
-
-
-
 }

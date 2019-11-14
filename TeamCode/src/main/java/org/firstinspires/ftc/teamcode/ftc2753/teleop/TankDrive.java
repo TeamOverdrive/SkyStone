@@ -14,8 +14,6 @@ public class TankDrive extends LinearOpMode {
     DcMotor motorFrontLeft;
     DcMotor motorFrontRight;
 
-    boolean soundPlaying = false;
-
     @Override
     public void runOpMode() throws InterruptedException {
 
