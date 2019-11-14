@@ -176,7 +176,6 @@ public class    Teleop extends LinearOpMode {
                 if (lnSelect == 7) {
                     speedReduction = (float) 0.6;
                 } else if (lnSelect == 8) {
-                    drive.speedMax = (float) (2 / Math.sqrt(2));
                 } else if (lnSelect == 9) {
                     rotateSpeed = (float) 0.6;
                 } else if (lnSelect == 10) {
@@ -187,7 +186,6 @@ public class    Teleop extends LinearOpMode {
                 if (lnSelect == 7) {
                     speedReduction = 1;
                 } else if (lnSelect == 8) {
-                    drive.speedMax = 1;
                 } else if (lnSelect == 9) {
                     rotateSpeed = 1;
                 } else if (lnSelect == 10) {

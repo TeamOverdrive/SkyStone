@@ -34,13 +34,8 @@ import static org.firstinspires.ftc.robotcore.external.navigation.AxesOrder.YZX;
 import static org.firstinspires.ftc.robotcore.external.navigation.AxesReference.EXTRINSIC;
 import static org.firstinspires.ftc.robotcore.external.navigation.VuforiaLocalizer.CameraDirection.BACK;
 
-<<<<<<< HEAD:TeamCode/src/main/java/org/firstinspires/ftc/teamcode/ftc2753/auto/AutoPathing.java
 @Disabled
-@Autonomous(name="Auto RED-Skystone", group="Pushbot")
-=======
 @Autonomous(name="Vuforia Auto Red Stone", group="Pushbot")
-
->>>>>>> master:TeamCode/src/main/java/org/firstinspires/ftc/teamcode/ftc2753/Dave/AutoPathing.java
 public class AutoPathing extends LinearOpMode {
 
     DriveTrain drive = new DriveTrain();

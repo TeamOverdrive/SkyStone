@@ -82,6 +82,7 @@ import static org.firstinspires.ftc.robotcore.external.navigation.VuforiaLocaliz
  * is explained below.
  */
 
+@Disabled
 @TeleOp(name="SKYSTONE Vuforia Nav TestSet", group ="Concept")
 
 public class VuforiaTime2 extends LinearOpMode {
