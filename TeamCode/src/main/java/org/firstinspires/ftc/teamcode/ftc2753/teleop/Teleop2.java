@@ -16,6 +16,7 @@ import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
 import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
 import org.firstinspires.ftc.teamcode.ftc2753.subsystems.DriveTrain;
+import org.firstinspires.ftc.teamcode.ftc2753.subsystems.Robot;
 import org.firstinspires.ftc.teamcode.ftc2753.subsystems.Servos;
 import org.firstinspires.ftc.teamcode.ftc2753.util.utilities;
 
@@ -28,44 +29,58 @@ public class Teleop2 extends LinearOpMode {
     @Override
     public void runOpMode() throws InterruptedException {
 
-        DriveTrain drive = new DriveTrain();
-        Servos servo = new Servos();
-        servo.intakeLift.setPosition(1);
+        Robot robot = new Robot();
 
         waitForStart();
-
-        drive.setBrake();
 
         Orientation angles;
 
         while (opModeIsActive() && !isStopRequested()) {
 
-            angles = drive.imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
-            drive.teleDrive(angles);
-            getBrake(drive);
-            if (gamepad1.y) {
-                drive.initIMU();
+            angles = robot.imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
+            if (gamepad1.y && (Math.abs(gamepad1.left_stick_y) > 0.05 || Math.abs(gamepad1.left_stick_y) > 0.05)) {
+                robot.drive.teleDrive(angles,robot.drive.gyroAngle(1,90,angles));
+            } else if (gamepad1.y) {
+                gyroTurn(0.4,90,robot);
+            } else {
+                robot.drive.teleDrive(angles);
             }
-            drive.update();
+            getBrake(robot);
+            if (gamepad1.y) {
+                robot.initIMU();
+            }
+            robot.servos.setFoundationGrabber();
+            robot.servos.setIntakeHeight();
+            robot.drive.update();
 
         }
         requestOpModeStop();
     }
-    public void getBrake(DriveTrain drive) {
+    public void getBrake(Robot robot) {
         if (gamepad1.left_bumper) {
-            drive.setBrake(drive.motorFrontLeft);
-            drive.FrontLeft = 0;
-            drive.BackLeft = 0;
+            robot.drive.setBrake(robot.drive.motorFrontLeft);
+            robot.drive.FrontLeft = 0;
+            robot.drive.BackLeft = 0;
         }
         if (gamepad1.right_bumper) {
-            drive.setBrake(drive.motorFrontRight);
-            drive.FrontRight = 0;
-            drive.BackRight = 0;
+            robot.drive.setBrake(robot.drive.motorFrontRight);
+            robot.drive.FrontRight = 0;
+            robot.drive.BackRight = 0;
         }
         if (gamepad1.left_bumper && gamepad1.right_bumper) {
-            drive.setBrake(drive.motorBackLeft);
-            drive.setBrake(drive.motorBackRight);
-            drive.kill();
+            robot.drive.setBrake(robot.drive.motorBackLeft);
+            robot.drive.setBrake(robot.drive.motorBackRight);
+            robot.drive.kill();
+        }
+    }
+    public void gyroTurn (double speed, double angle, Robot robot) {
+        Orientation angles;
+        // keep looping while we are still active, and not on heading.
+        angles = robot.imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
+        while (opModeIsActive() && !robot.drive.onHeading(speed, angle, angles)) {
+            // Update telemetry & Allow time for other processes to run.
+            telemetry.update();
+            angles = robot.imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
         }
     }
 

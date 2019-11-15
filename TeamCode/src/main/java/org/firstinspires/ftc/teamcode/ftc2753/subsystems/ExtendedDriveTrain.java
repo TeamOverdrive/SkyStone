@@ -9,7 +9,7 @@ import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
 import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
 
-public class AutoDriveTrain extends DriveTrain{
+public class ExtendedDriveTrain extends DriveTrain{
 
     private static final float  P_TURN_COEFF         = 0.1f;
     private static final double P_DRIVE_COEFF        = 0.15;
@@ -111,6 +111,25 @@ public class AutoDriveTrain extends DriveTrain{
     private double getSteer(double error, double PCoeff) {
         return Range.clip(error * PCoeff, -1, 1);
 
+    }
+    public double gyroAngle(double speed, double angle, Orientation angles) {
+        double   error ;
+        double   steer ;
+        double rightSpeed;
+
+        // determine turn power based on +/- error
+        error = getError(angle,angles);
+
+        if (Math.abs(error) <= HEADING_THRESHOLD) {
+            steer = 0.0;
+            rightSpeed = 0.0;
+        }
+        else {
+            steer = getSteer(error, P_TURN_COEFF);
+            rightSpeed  = speed * steer;
+        }
+
+        return rightSpeed;
     }
 
 }

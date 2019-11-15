@@ -1,36 +1,19 @@
 package org.firstinspires.ftc.teamcode.ftc2753.auto;
 
-import android.app.Activity;
-import android.graphics.Color;
 import android.view.View;
 
-import com.qualcomm.hardware.bosch.BNO055IMU;
-import com.qualcomm.hardware.rev.Rev2mDistanceSensor;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
-import com.qualcomm.robotcore.hardware.DcMotor;
-import com.qualcomm.robotcore.hardware.DistanceSensor;
+import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.hardware.NormalizedColorSensor;
-import com.qualcomm.robotcore.hardware.NormalizedRGBA;
-import com.qualcomm.robotcore.hardware.Servo;
-import com.qualcomm.robotcore.hardware.ServoImplEx;
-import com.qualcomm.robotcore.hardware.SwitchableLight;
 import com.qualcomm.robotcore.util.ElapsedTime;
-import com.qualcomm.robotcore.util.Range;
 
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
-import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
-import org.firstinspires.ftc.teamcode.ftc2753.subsystems.AutoDriveTrain;
-import org.firstinspires.ftc.teamcode.ftc2753.subsystems.DriveTrain;
 import org.firstinspires.ftc.teamcode.ftc2753.subsystems.Robot;
-
-import com.qualcomm.hardware.modernrobotics.ModernRoboticsI2cGyro;
-
-
-import static org.firstinspires.ftc.robotcore.external.navigation.AxesOrder.XYZ;
+import org.firstinspires.ftc.teamcode.ftc2753.util.AutoTransitioner;
 
 @Autonomous(name="Red Foundation", group="auto")
 
@@ -51,6 +34,7 @@ public class RedFoundation extends LinearOpMode {
         robot.servos.releaseFoundation();
 
         // Wait for the start button to be pressed.
+        AutoTransitioner.transitionOnStop(this, "Teleop2");
         waitForStart();
 
         robot.drive.move(-20,0.2f,4);
