@@ -29,6 +29,8 @@ public class Teleop2 extends LinearOpMode {
     @Override
     public void runOpMode() throws InterruptedException {
 
+        init();
+
         Robot robot = new Robot();
 
         waitForStart();

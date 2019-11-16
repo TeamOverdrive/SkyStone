@@ -16,7 +16,6 @@ import org.firstinspires.ftc.teamcode.ftc2753.subsystems.Robot;
 import org.firstinspires.ftc.teamcode.ftc2753.util.AutoTransitioner;
 
 @Autonomous(name="Red Foundation", group="auto")
-
 public class RedFoundation extends LinearOpMode {
 
     Orientation angles;
@@ -29,6 +28,7 @@ public class RedFoundation extends LinearOpMode {
      * use a color sensor on your robot */
     View relativeLayout;
 
+    @Override
     public void runOpMode() throws InterruptedException {
 
         robot.servos.releaseFoundation();
