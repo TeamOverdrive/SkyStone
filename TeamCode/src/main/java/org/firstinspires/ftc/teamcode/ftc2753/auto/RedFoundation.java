@@ -60,6 +60,7 @@ public class RedFoundation extends LinearOpMode {
     private Servo sensorRotator;
     private Servo foundationLeft;
     private Servo foundationRight;
+    private Servo intakeLift;
 
     private float intakeSpeed;
 
@@ -81,6 +82,7 @@ public class RedFoundation extends LinearOpMode {
     public void runOpMode() throws InterruptedException {
 
         initMotors();
+        initServos();
         initIMU();
 
         foundationLeft.setPosition(0.5f);
@@ -356,6 +358,13 @@ public class RedFoundation extends LinearOpMode {
         motorFrontRight.setPower(rightSpeed);
 
         return onTarget;
+    }
+    public void initServos(){
+        sideGrabber = hardwareMap.get(ServoImplEx.class, "sideGrabber");
+        sensorRotator = hardwareMap.get(ServoImplEx.class, "sensor");
+        foundationLeft = hardwareMap.get(ServoImplEx.class, "foundationLeft");
+        foundationRight = hardwareMap.get(ServoImplEx.class, "foundationRight");
+        intakeLift = hardwareMap.get(ServoImplEx.class, "liftIntake");
     }
 
     /**
