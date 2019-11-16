@@ -170,6 +170,8 @@ public class RedFoundation extends LinearOpMode {
 
     public void moveInch(int inches, float speed, float timeout) {
 
+        float targetAngle = angles.firstAngle;
+        double error = 0, steer;
         ElapsedTime runtime = new ElapsedTime();
         int motorFrontRightTP = motorFrontRight.getCurrentPosition() + (int) (inches * drive.COUNTS_PER_INCH);
         int motorBackRightTP = motorBackRight.getCurrentPosition() + (int) (inches * drive.COUNTS_PER_INCH);
@@ -193,10 +195,21 @@ public class RedFoundation extends LinearOpMode {
         motorFrontLeft.setPower(Math.abs(speed));
         motorBackLeft.setPower(Math.abs(speed));
 
-
         while (opModeIsActive() &&
                 (runtime.seconds() < timeout) &&
                 (motorFrontRight.isBusy() && motorBackRight.isBusy() && motorFrontLeft.isBusy() && motorBackLeft.isBusy())) {
+
+            error = drive.getError(targetAngle, angles);
+            steer = drive.getSteer(error, P_DRIVE_COEFF);
+
+            // if driving in reverse, the motor correction also needs to be reversed
+            if (inches < 0)
+                steer *= -1.0;
+
+            motorFrontRight.setPower(Math.abs(speed + steer));
+            motorBackRight.setPower(Math.abs(speed + steer));
+            motorFrontLeft.setPower(Math.abs(speed - steer));
+            motorBackLeft.setPower(Math.abs(speed - steer));
 
         }
 
