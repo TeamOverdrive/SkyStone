@@ -6,6 +6,8 @@ import com.acmerobotics.roadrunner.trajectory.constraints.DriveConstraints;
 import com.qualcomm.hardware.motors.GoBILDA5202Series;
 import com.qualcomm.hardware.motors.NeveRest20Gearmotor;
 import com.qualcomm.hardware.motors.NeveRest40Gearmotor;
+import com.qualcomm.robotcore.hardware.configuration.annotations.DeviceProperties;
+import com.qualcomm.robotcore.hardware.configuration.annotations.MotorType;
 import com.qualcomm.robotcore.hardware.configuration.typecontainers.MotorConfigurationType;
 
 /*
@@ -29,12 +31,9 @@ public class DriveConstants {
      * @DeviceProperties and @MotorType annotations.
      */
 
-    /*
-    TODO: fix this config
-     */
 
     private static final MotorConfigurationType MOTOR_CONFIG =
-            MotorConfigurationType.getMotorType(GoBILDA5202Series.class);
+            MotorConfigurationType.getMotorType(GoBILDA520200020019.class);
 
     /*
      * Set the first flag appropriately. If using the built-in motor velocity PID, update
@@ -42,7 +41,7 @@ public class DriveConstants {
      */
 
     public static final boolean RUN_USING_ENCODER = true;
-    public static final PIDCoefficients MOTOR_VELO_PID = null;
+    public static final PIDCoefficients MOTOR_VELO_PID = new PIDCoefficients();
 
     /*
      * These are physical constants that can be determined from your robot (including the track
