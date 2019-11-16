@@ -18,11 +18,6 @@ public class DriveTrain {
     public double BackLeft = 0;
     public double BackRight = 0;
 
-    public DcMotor motorBackLeft;
-    public DcMotor motorBackRight;
-    public DcMotor motorFrontLeft;
-    public DcMotor motorFrontRight;
-
     public final double COUNTS_PER_INCH = 43.465342326685739;
 
     public float speedMax = (float) (2 / Math.sqrt(2));
@@ -72,73 +67,9 @@ public class DriveTrain {
         this.BackRight = speed;
 
     }
-    public void kill() {
 
-        motorFrontLeft.setPower(0);
-        motorFrontRight.setPower(0);
-        motorBackLeft.setPower(0);
-        motorBackRight.setPower(0);
 
-    }
 
-    /**
-     *  Method to obtain & hold a heading for a finite amount of time
-     *  Move will stop once the requested time has elapsed
-     *
-     * @param speed      Desired speed of turn.
-     * @param angle      Absolute Angle (in Degrees) relative to last gyro reset.
-     *                   0 = fwd. +ve is CCW from fwd. -ve is CW from forward.
-     *                   If a relative angle is required, add/subtract from current heading.
-     * @param holdTime   Length of time (in seconds) to hold the specified heading.
-     */
-
-    /**
-     * Perform one cycle of closed loop heading control.
-     *
-     * @param speed     Desired speed of turn.
-     * @param angle     Absolute Angle (in Degrees) relative to last gyro reset.
-     *                  0 = fwd. +ve is CCW from fwd. -ve is CW from forward.
-     *                  If a relative angle is required, add/subtract from current heading.
-     * @param PCoeff    Proportional Gain coefficient
-     * @return
-     */
-    public boolean onHeading(double speed, double angle, double PCoeff, Orientation angles) {
-        double   error ;
-        double   steer ;
-        boolean  onTarget = false ;
-        double leftSpeed;
-        double rightSpeed;
-
-        // determine turn power based on +/- error
-        error = getError(angle,angles);
-
-        if (Math.abs(error) <= this.HEADING_THRESHOLD) {
-            steer = 0.0;
-            leftSpeed  = 0.0;
-            rightSpeed = 0.0;
-            onTarget = true;
-        }
-        else {
-            steer = getSteer(error, PCoeff);
-            rightSpeed  = speed * steer;
-            leftSpeed   = -rightSpeed;
-        }
-
-        // Send desired speeds to motors.
-        motorBackLeft.setPower(leftSpeed);
-        motorFrontLeft.setPower(leftSpeed);
-        motorBackRight.setPower(rightSpeed);
-        motorFrontRight.setPower(rightSpeed);
-
-        return onTarget;
-    }
-
-    /**
-     * getError determines the error between the target angle and the robot's current heading
-     * @param   targetAngle  Desired angle (relative to global reference established at last Gyro Reset).
-     * @return  error angle: Degrees in the range +/- 180. Centered on the robot's frame of reference
-     *          +ve error means the robot should turn LEFT (CCW) to reduce error.
-     */
     public double getError(double targetAngle, Orientation angles) {
 
         double robotError;

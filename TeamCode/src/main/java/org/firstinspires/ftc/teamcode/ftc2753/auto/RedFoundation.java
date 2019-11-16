@@ -321,10 +321,47 @@ public class RedFoundation extends LinearOpMode {
 
         // keep looping while we are still active, and not on heading.
         angles = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
-        while (opModeIsActive() && !drive.onHeading(speed, angle, P_TURN_COEFF, angles)) {
+        while (opModeIsActive() && !onHeading(speed, angle, P_TURN_COEFF, angles)) {
             // Update telemetry & Allow time for other processes to run.
             telemetry.update();
             angles = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
         }
     }
+    public boolean onHeading(double speed, double angle, double PCoeff, Orientation angles) {
+        double   error ;
+        double   steer ;
+        boolean  onTarget = false ;
+        double leftSpeed;
+        double rightSpeed;
+
+        // determine turn power based on +/- error
+        error = drive.getError(angle,angles);
+
+        if (Math.abs(error) <= this.HEADING_THRESHOLD) {
+            steer = 0.0;
+            leftSpeed  = 0.0;
+            rightSpeed = 0.0;
+            onTarget = true;
+        }
+        else {
+            steer = drive.getSteer(error, PCoeff);
+            rightSpeed  = speed * steer;
+            leftSpeed   = -rightSpeed;
+        }
+
+        // Send desired speeds to motors.
+        motorBackLeft.setPower(leftSpeed);
+        motorFrontLeft.setPower(leftSpeed);
+        motorBackRight.setPower(rightSpeed);
+        motorFrontRight.setPower(rightSpeed);
+
+        return onTarget;
+    }
+
+    /**
+     * getError determines the error between the target angle and the robot's current heading
+     * @param   targetAngle  Desired angle (relative to global reference established at last Gyro Reset).
+     * @return  error angle: Degrees in the range +/- 180. Centered on the robot's frame of reference
+     *          +ve error means the robot should turn LEFT (CCW) to reduce error.
+     */
 }
