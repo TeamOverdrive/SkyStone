@@ -8,7 +8,7 @@ import com.qualcomm.robotcore.hardware.ServoImplEx;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 @TeleOp(name="Test Me", group = "tests")
-public class TestingStrafe extends LinearOpMode {
+public class Sandbox extends LinearOpMode {
 
     private DcMotor motorBackLeft;
     private DcMotor motorBackRight;

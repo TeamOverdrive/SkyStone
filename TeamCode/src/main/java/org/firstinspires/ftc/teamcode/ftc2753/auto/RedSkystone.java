@@ -30,7 +30,7 @@ import static org.firstinspires.ftc.robotcore.external.navigation.AxesOrder.XYZ;
 @Config
 @Autonomous(name="Red Skystone", group="auto")
 
-public class SensorTest extends LinearOpMode {
+public class RedSkystone extends LinearOpMode {
 
     DriveTrain drive = new DriveTrain();
 
