@@ -33,9 +33,9 @@ public class Teleop2 extends LinearOpMode {
 
         init();
 
-        waitForStart();
-
         Orientation angles;
+
+        waitForStart();
 
         while (opModeIsActive() && !isStopRequested()) {
 

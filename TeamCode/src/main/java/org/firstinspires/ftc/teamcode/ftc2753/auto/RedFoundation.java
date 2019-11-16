@@ -31,10 +31,12 @@ public class RedFoundation extends LinearOpMode {
     @Override
     public void runOpMode() throws InterruptedException {
 
+        init();
+
         robot.servos.releaseFoundation();
 
         // Wait for the start button to be pressed.
-        AutoTransitioner.transitionOnStop(this, "Teleop2");
+        // AutoTransitioner.transitionOnStop(this, "Teleop2");
         waitForStart();
 
         robot.drive.move(-20,0.2f,4);
