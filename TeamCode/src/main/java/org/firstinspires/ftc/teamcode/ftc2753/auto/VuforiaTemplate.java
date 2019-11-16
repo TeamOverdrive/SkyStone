@@ -497,7 +497,7 @@ public class VuforiaTemplate extends LinearOpMode {
             } else {
                 telemetry.addData("Visible Target", "none");
                 telemetry.update();
-                //one tile is 2ft - 24 inches
+                //one tile is 2ft - 24 inches adjust accordingly
                 moveInch(-24, 0.05f,  15);
                 moveInch (48, 0.08f, 15);
 
@@ -667,6 +667,7 @@ public class VuforiaTemplate extends LinearOpMode {
             if(switchNav = true) {
                 //drive.move("RIGHT", 0.1f);
                 strafeInch(-18,0.2f, 10);
+
             }
 
 
