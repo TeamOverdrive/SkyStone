@@ -2,6 +2,7 @@ package org.firstinspires.ftc.teamcode.ftc2753.auto;
 
 import android.view.View;
 
+import com.qualcomm.hardware.bosch.BNO055IMU;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
@@ -20,7 +21,9 @@ public class RedFoundation extends LinearOpMode {
 
     Orientation angles;
 
-    Robot robot = new Robot();
+    BNO055IMU imu;
+
+    Robot robot = new Robot(this);
 
     NormalizedColorSensor colorSensor;
     /** The relativeLayout field is used to aid in providing interesting visual feedback
@@ -128,4 +131,5 @@ public class RedFoundation extends LinearOpMode {
         ElapsedTime runtime = new ElapsedTime();
         while (opModeIsActive() && (runtime.seconds() < seconds)) {}
     }
+
 }

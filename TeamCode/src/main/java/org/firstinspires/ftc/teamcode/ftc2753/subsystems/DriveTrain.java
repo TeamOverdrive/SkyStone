@@ -1,10 +1,12 @@
 package org.firstinspires.ftc.teamcode.ftc2753.subsystems;
 
+import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.Gamepad;
 
 import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
 
-public class DriveTrain extends Robot{
+public class DriveTrain extends Robot {
 
     public double FrontLeft, FrontRight, BackLeft, BackRight;
     public DcMotor motorBackLeft, motorBackRight, motorFrontLeft, motorFrontRight;
@@ -21,12 +23,12 @@ public class DriveTrain extends Robot{
 
     }
 
-    public void init() {
+    public void init(LinearOpMode LinearOpMode) {
 
-        motorBackLeft = hardwareMap.get(DcMotor.class, "left_back");
-        motorBackRight = hardwareMap.get(DcMotor.class, "right_back");
-        motorFrontLeft = hardwareMap.get(DcMotor.class, "left_front");
-        motorFrontRight = hardwareMap.get(DcMotor.class, "right_front");
+        motorBackLeft = LinearOpMode.hardwareMap.get(DcMotor.class, "left_back");
+        motorBackRight = LinearOpMode.hardwareMap.get(DcMotor.class, "right_back");
+        motorFrontLeft = LinearOpMode.hardwareMap.get(DcMotor.class, "left_front");
+        motorFrontRight = LinearOpMode.hardwareMap.get(DcMotor.class, "right_front");
 
         motorBackRight.setDirection(DcMotor.Direction.REVERSE);
         motorFrontRight.setDirection(DcMotor.Direction.REVERSE);
@@ -72,7 +74,7 @@ public class DriveTrain extends Robot{
             motors[i].setPower(0);
         }
     }
-    public void teleDrive(Orientation angles) {
+    public void teleDrive(Orientation angles, Gamepad gamepad1) {
         double relativeAngle;
         relativeAngle = (Math.atan2(-gamepad1.left_stick_y, gamepad1.left_stick_x) - Math.PI / 4) - Math.toRadians(angles.firstAngle);
         if (Math.abs(relativeAngle) > Math.PI) {
@@ -101,7 +103,7 @@ public class DriveTrain extends Robot{
             motors[i].setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
         }
     }
-    public void teleDrive(Orientation angles,double rotationToAngle) {
+    public void teleDrive(Orientation angles,double rotationToAngle, Gamepad gamepad1) {
         double relativeAngle;
         relativeAngle = (Math.atan2(-gamepad1.left_stick_y, gamepad1.left_stick_x) - Math.PI / 4) - Math.toRadians(angles.firstAngle);
         if (Math.abs(relativeAngle) > Math.PI) {

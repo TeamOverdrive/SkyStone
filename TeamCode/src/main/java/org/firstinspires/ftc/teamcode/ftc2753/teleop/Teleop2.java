@@ -28,6 +28,8 @@ public class Teleop2 extends LinearOpMode {
 
     Robot robot = new Robot();
 
+    BNO055IMU imu;
+
     @Override
     public void runOpMode() throws InterruptedException {
 
@@ -41,15 +43,15 @@ public class Teleop2 extends LinearOpMode {
 
             angles = robot.imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
             if (gamepad1.y && (Math.abs(gamepad1.left_stick_y) > 0.05 || Math.abs(gamepad1.left_stick_y) > 0.05)) {
-                robot.drive.teleDrive(angles,robot.drive.gyroAngle(1,90,angles));
+                robot.drive.teleDrive(angles,robot.drive.gyroAngle(1,90,angles), gamepad1);
             } else if (gamepad1.y) {
                 gyroTurn(0.4,90,robot);
             } else {
-                robot.drive.teleDrive(angles);
+                robot.drive.teleDrive(angles,gamepad1);
             }
             getBrake(robot);
             if (gamepad1.y) {
-                robot.initIMU();
+                initIMU();
             }
             robot.servos.setFoundationGrabber();
             robot.servos.setIntakeHeight();
@@ -84,6 +86,19 @@ public class Teleop2 extends LinearOpMode {
             telemetry.update();
             angles = robot.imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
         }
+    }
+    public void initIMU() {
+
+        BNO055IMU.Parameters IMUparameters = new BNO055IMU.Parameters();
+        IMUparameters.angleUnit = BNO055IMU.AngleUnit.DEGREES;
+        IMUparameters.accelUnit = BNO055IMU.AccelUnit.METERS_PERSEC_PERSEC;
+        IMUparameters.calibrationDataFile = "BNO055IMUCalibration.json";
+        IMUparameters.loggingEnabled = true;
+        IMUparameters.loggingTag = "IMU";
+
+        imu = hardwareMap.get(BNO055IMU.class, "imu");
+        imu.initialize(IMUparameters);
+
     }
 
 }
