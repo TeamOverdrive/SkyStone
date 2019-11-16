@@ -26,12 +26,12 @@ import java.util.Locale;
 @TeleOp(name = "Teleop", group = "TeleOp")
 public class Teleop2 extends LinearOpMode {
 
+    Robot robot = new Robot();
+
     @Override
     public void runOpMode() throws InterruptedException {
 
         init();
-
-        Robot robot = new Robot();
 
         waitForStart();
 
