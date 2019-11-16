@@ -9,13 +9,13 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.robotcore.internal.opmode.TelemetryImpl;
 
-public class Robot extends OpMode {
+public class Robot {
 
     public DistanceSensor distSensor;
 
     public Gamepad gamepad1 = null;
     public Gamepad gamepad2 = null;
-    public Telemetry telemetry = new TelemetryImpl(this);
+    //public Telemetry telemetry = new TelemetryImpl(this);
 
 
     public BNO055IMU imu;
@@ -32,15 +32,6 @@ public class Robot extends OpMode {
         intake.init();
         servos.init();
         initIMU();
-    }
-    @Override
-    public void init() {
-
-    }
-
-    @Override
-    public void loop() {
-
     }
 
     public void initIMU() {
