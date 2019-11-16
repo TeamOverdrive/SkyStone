@@ -94,9 +94,10 @@ public class ExtendedDriveTrain extends DriveTrain{
         motorFrontRight.setPower(rightSpeed);
 
         // Display it for the driver.
-        telemetry.addData("Target", "%5.2f", angle);
-        telemetry.addData("Err/St", "%5.2f/%5.2f", error, steer);
-        telemetry.addData("Speed.", "%5.2f:%5.2f", leftSpeed, rightSpeed);
+        //telemetry.addData("Target", "%5.2f", angle);
+        //telemetry.addData("Err/St", "%5.2f/%5.2f", error, steer);
+        //telemetry.addData("Speed.", "%5.2f:%5.2f", leftSpeed, rightSpeed);
+        //^^^ current borken
 
         return onTarget;
     }
