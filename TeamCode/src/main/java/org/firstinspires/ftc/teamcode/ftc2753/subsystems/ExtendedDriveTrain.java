@@ -17,8 +17,12 @@ public class ExtendedDriveTrain extends DriveTrain{
 
     public double speed = 0;
     public double timeout = 100;
+    public double angle = 0;
+    public double distance = 0;
 
     public void move(double inches, double speed, double timeout) {
+
+        this.distance = inches;
 
         this.motorFrontRight.setTargetPosition(motorFrontRight.getCurrentPosition() + (int)(inches * drive.COUNTS_PER_INCH));
         this.motorBackRight.setTargetPosition(motorBackRight.getCurrentPosition() + (int)(inches * drive.COUNTS_PER_INCH));

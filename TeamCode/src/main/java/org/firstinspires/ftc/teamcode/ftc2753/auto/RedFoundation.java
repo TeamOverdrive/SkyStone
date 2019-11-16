@@ -91,6 +91,10 @@ public class RedFoundation extends LinearOpMode {
         }
     }
     public void update() {
+
+        angles = robot.imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
+        robot.drive.angle = angles.firstAngle;
+
         robot.drive.motorFrontRight.setPower(Math.abs(robot.drive.speed));
         robot.drive.motorBackRight.setPower(Math.abs(robot.drive.speed));
         robot.drive.motorFrontLeft.setPower(Math.abs(robot.drive.speed));
@@ -98,9 +102,18 @@ public class RedFoundation extends LinearOpMode {
 
         ElapsedTime runtime = new ElapsedTime();
 
+        float steer = 0;
         while (opModeIsActive() &&
                 (runtime.seconds() < robot.drive.timeout) &&
                 (robot.drive.motorFrontRight.isBusy() && robot.drive.motorBackRight.isBusy() && robot.drive.motorFrontLeft.isBusy() && robot.drive.motorBackLeft.isBusy())) {
+
+            if (robot.drive.distance < 0)
+                steer *= -1.0;
+
+            robot.drive.motorFrontRight.setPower(Math.abs(robot.drive.speed + steer));
+            robot.drive.motorBackRight.setPower(Math.abs(robot.drive.speed + steer));
+            robot.drive.motorFrontLeft.setPower(Math.abs(robot.drive.speed - steer));
+            robot.drive.motorBackLeft.setPower(Math.abs(robot.drive.speed - steer));
 
         }
 
