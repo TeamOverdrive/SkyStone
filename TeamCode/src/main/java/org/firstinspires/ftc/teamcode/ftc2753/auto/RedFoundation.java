@@ -39,7 +39,11 @@ public class RedFoundation extends LinearOpMode {
         robot.servos.releaseFoundation();
 
         // Wait for the start button to be pressed.
+//<<<<<<< Updated upstream
         // AutoTransitioner.transitionOnStop(this, "Teleop2");
+//=======
+        //AutoTransitioner.transitionOnStop(this, "Teleop2");
+//>>>>>>> Stashed changes
         waitForStart();
 
         robot.drive.move(-20,0.2f,4);

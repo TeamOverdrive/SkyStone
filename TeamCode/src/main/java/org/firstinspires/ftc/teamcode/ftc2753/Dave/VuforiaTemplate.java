@@ -29,6 +29,7 @@
 
 package org.firstinspires.ftc.teamcode.ftc2753.Dave;
 
+import com.qualcomm.hardware.bosch.BNO055IMU;
 import com.qualcomm.hardware.rev.Rev2mDistanceSensor;
 import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
@@ -39,11 +40,15 @@ import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.hardware.ServoImplEx;
 import com.qualcomm.robotcore.hardware.SwitchableLight;
 import com.qualcomm.robotcore.util.ElapsedTime;
+import com.qualcomm.robotcore.util.Range;
 
 import org.firstinspires.ftc.robotcore.external.ClassFactory;
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 import org.firstinspires.ftc.robotcore.external.matrices.OpenGLMatrix;
 import org.firstinspires.ftc.robotcore.external.matrices.VectorF;
+import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
+import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
+import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
 import org.firstinspires.ftc.robotcore.external.navigation.VuforiaLocalizer;
@@ -152,6 +157,8 @@ public class VuforiaTemplate extends LinearOpMode {
 
     DriveTrain drive = new DriveTrain();
 
+    BNO055IMU imu;
+
     private ElapsedTime runtime = new ElapsedTime();
     private DistanceSensor distRight;
     private DistanceSensor RobotSideDistance;
@@ -161,19 +168,45 @@ public class VuforiaTemplate extends LinearOpMode {
     private Servo foundationRight;
     private Servo intakeLift;
 
-    DcMotor motorBackLeft;
-    DcMotor motorBackRight;
-    DcMotor motorFrontLeft;
-    DcMotor motorFrontRight;
+    private DcMotor motorBackLeft;
+    private DcMotor motorBackRight;
+    private DcMotor motorFrontLeft;
+    private DcMotor motorFrontRight;
+    private DcMotor intake;
+
+    private float intakeSpeed;
 
     public static double GRABBERUP = 0.66;
     public static double GRABBERDOWN = 0.8;
 
     boolean wasYDown = false;
 
+    Orientation             lastAngles = new Orientation();
+    double                  globalAngle, power = .30, correction;
+
+    Orientation angles;
+
+    /*note that with the config annotation above public class Teleop2,
+            the below public static non-final variables can be edited on the fly with FTC Dashboard
+    */
+    //sideUp and sideDown are used for both the stone side grabber and the sensor array actuator
+    public static double sideUp = 180/270;
+    public static double sideDown = 0/270;
+    public static double grabberDiagnostic = 0.5; //grabber is in continuous mode rn
+
+    //values for the foundation grabber servos; note foundationGrab() and foundationRelease() methods
+    public static double foundationUp = 1;
+    public static double foundationDown = 0;
+    public static double foundationDiagnostic = 0.5;
+
+    static final double     P_TURN_COEFF            = 0.1;     // Larger is more responsive, but also less stable
+    static final double     P_DRIVE_COEFF           = 0.15;     // Larger is more responsive, but also less stable
+    static final double     HEADING_THRESHOLD       = 1 ;      // As tight as we can make it with an integer gyro
+
     public static double yPos;
     public static double zPos;
     public static double xPos;
+    public static double xPosFromDistSensor;
 
     boolean switchNav = true;
     //-----------------------------------------------------------------
@@ -362,8 +395,13 @@ public class VuforiaTemplate extends LinearOpMode {
 
 
 
-        //sideGrabber.setPosition(0.5f);
-        //intakeLift.setPosition(1);
+        sideGrabber.setPosition(0.5f);
+        intakeLift.setPosition(1);
+        initIMU();
+
+        initMotors();
+
+        initServos();
 
 
         //------------------------------------NON VUFORIA -------------------------------------------
@@ -374,14 +412,13 @@ public class VuforiaTemplate extends LinearOpMode {
         // To restore the normal opmode structure, just un-comment the following line:
 
         waitForStart();
-        initMotors();
 
-        initServos();
 
 
 
         //sleep(500);
-        strafeInch(23, 0.30f, 7);
+
+
         // Note: To use the remote camera preview:
         // AFTER you hit Init on the Driver Station, use the "options menu" to select "Camera Stream"
         // Tap the preview window to receive a fresh image.
@@ -416,7 +453,7 @@ public class VuforiaTemplate extends LinearOpMode {
                 //------------------------------NON VUFORIA------------------------------------------------------------
 
                 telemetry.addData("Accurate X-Dist: ", distRight.getDistance(DistanceUnit.MM));
-
+                xPosFromDistSensor = distRight.getDistance(DistanceUnit.MM);
                 xPos = translation.get(0);
                 yPos = translation.get(1);
                 zPos = translation.get(2);
@@ -438,6 +475,10 @@ public class VuforiaTemplate extends LinearOpMode {
 
                 newcode--------------------------------------------------------*/
                 telemetry.update();
+                moveInch(-16, 0.45f, 8);
+
+
+
                 //stopMove();
                 //moveToYCoord();
                 //moveToXCoord();
@@ -456,7 +497,9 @@ public class VuforiaTemplate extends LinearOpMode {
             } else {
                 telemetry.addData("Visible Target", "none");
                 telemetry.update();
-                moveInch(20, 0.05f,  7);
+                //one tile is 2ft - 24 inches
+                moveInch(-24, 0.05f,  15);
+                moveInch (48, 0.08f, 15);
 
             }
             telemetry.update();
@@ -575,6 +618,8 @@ public class VuforiaTemplate extends LinearOpMode {
         motorBackRight = hardwareMap.get(DcMotor.class, "right_back");
         motorFrontLeft = hardwareMap.get(DcMotor.class, "left_front");
         motorFrontRight = hardwareMap.get(DcMotor.class, "right_front");
+        intake = hardwareMap.get(DcMotor.class, "intake");
+
 
         motorBackRight.setDirection(DcMotor.Direction.REVERSE);
         motorFrontRight.setDirection(DcMotor.Direction.REVERSE);
@@ -603,7 +648,7 @@ public class VuforiaTemplate extends LinearOpMode {
         motorBackRight.setPower(0);
     }
 
-      public void moveToYCoord() {
+    public void moveToYCoord() {
          /*if (!targetVisible) {
             moveInch(-3, 1, 2);
 
@@ -612,40 +657,216 @@ public class VuforiaTemplate extends LinearOpMode {
             else {
                 while (distRight.getDistance(DistanceUnit.MM) > 10) {
                     drive.move(-1);
+
                     update();
 
                 }
-            }*/
-        //}
-//FIX THIS!!!!!!!!!!!!!!!!
-          if (yPos > 30) { // in mm
+            }
+        } */
+          if (yPos > 20) { // in mm
               if(switchNav = true) {
                   //drive.move("RIGHT", 0.1f);
-                  moveInch(18,0.2f, 15 );
-                  update();
-              }
-              else if (switchNav = false) {
-                  setBrake();
+                  strafeInch(-18,0.2f, 10);
               }
 
-        } else if (yPos < -30) { //in mm
+
+        } else if (yPos < -20) { //in mm
               if (switchNav = true) {
                   //drive.move("LEFT", 0.1f);
-                  moveInch(-18, 0.2f, 15);
-                  update();
+                  strafeInch(18, 0.2f, 10);
               }
-              else if (switchNav = false) {
-                  setBrake();
-              }
+
         }
           else {
               switchNav = false;
-              setBrake();
+              rotateToSkystone();
+              intakeSpeed = 1.0f;
+              setIntakeSpeed();
+
               //moveInch (10, 0.25f, 7 );
               //strafeInch(8, 0.2f, 5);  SWITCH TO DIST SENSOR
 
           }
     }
+    public void moveToXCoord() {
+        // use xPosFromDistSensor
+        while (xPosFromDistSensor < 50);
+    }
+
+    public void rotateToSkystone() {
+        gyroTurn(0.5, 180);
+    }
+
+    public void setIntakeSpeed() {
+        intake.setPower(intakeSpeed);
+
+    }
+
+    public void gyroTurn (  double speed, double angle) {
+
+        // keep looping while we are still active, and not on heading.
+        angles = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
+        while (opModeIsActive() && !onHeading(speed, angle, P_TURN_COEFF, angles)) {
+            // Update telemetry & Allow time for other processes to run.
+            telemetry.update();
+            angles = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
+        }
+    }
+
+    /**
+     *  Method to obtain & hold a heading for a finite amount of time
+     *  Move will stop once the requested time has elapsed
+     *
+     * @param speed      Desired speed of turn.
+     * @param angle      Absolute Angle (in Degrees) relative to last gyro reset.
+     *                   0 = fwd. +ve is CCW from fwd. -ve is CW from forward.
+     *                   If a relative angle is required, add/subtract from current heading.
+     * @param holdTime   Length of time (in seconds) to hold the specified heading.
+     */
+    public void gyroHold( double speed, double angle, double holdTime) {
+
+        ElapsedTime holdTimer = new ElapsedTime();
+
+        // keep looping while we have time remaining.
+        holdTimer.reset();
+        while (opModeIsActive() && (holdTimer.time() < holdTime)) {
+            // Update telemetry & Allow time for other processes to run.
+            onHeading(speed, angle, P_TURN_COEFF, angles);
+            telemetry.update();
+        }
+
+        // Stop all motion;
+        motorBackLeft.setPower(0);
+        motorFrontLeft.setPower(0);
+        motorBackRight.setPower(0);
+        motorFrontRight.setPower(0);
+    }
+
+    /**
+     * Perform one cycle of closed loop heading control.
+     *
+     * @param speed     Desired speed of turn.
+     * @param angle     Absolute Angle (in Degrees) relative to last gyro reset.
+     *                  0 = fwd. +ve is CCW from fwd. -ve is CW from forward.
+     *                  If a relative angle is required, add/subtract from current heading.
+     * @param PCoeff    Proportional Gain coefficient
+     * @return
+     */
+    boolean onHeading(double speed, double angle, double PCoeff, Orientation angles) {
+        double   error ;
+        double   steer ;
+        boolean  onTarget = false ;
+        double leftSpeed;
+        double rightSpeed;
+
+        // determine turn power based on +/- error
+        error = getError(angle,angles);
+
+        if (Math.abs(error) <= HEADING_THRESHOLD) {
+            steer = 0.0;
+            leftSpeed  = 0.0;
+            rightSpeed = 0.0;
+            onTarget = true;
+        }
+        else {
+            steer = getSteer(error, PCoeff);
+            rightSpeed  = speed * steer;
+            leftSpeed   = -rightSpeed;
+        }
+
+        // Send desired speeds to motors.
+        motorBackLeft.setPower(leftSpeed);
+        motorFrontLeft.setPower(leftSpeed);
+        motorBackRight.setPower(rightSpeed);
+        motorFrontRight.setPower(rightSpeed);
+
+        // Display it for the driver.
+        telemetry.addData("Target", "%5.2f", angle);
+        telemetry.addData("Err/St", "%5.2f/%5.2f", error, steer);
+        telemetry.addData("Speed.", "%5.2f:%5.2f", leftSpeed, rightSpeed);
+
+        return onTarget;
+    }
+
+    /**
+     * getError determines the error between the target angle and the robot's current heading
+     * @param   targetAngle  Desired angle (relative to global reference established at last Gyro Reset).
+     * @return  error angle: Degrees in the range +/- 180. Centered on the robot's frame of reference
+     *          +ve error means the robot should turn LEFT (CCW) to reduce error.
+     */
+    public double getError(double targetAngle, Orientation angles) {
+
+        double robotError;
+
+        // calculate error in -179 to +180 range  (
+        robotError = targetAngle - angles.firstAngle;
+        while (robotError > 180)  robotError -= 360;
+        while (robotError <= -180) robotError += 360;
+        return robotError;
+    }
+
+    /**
+     * returns desired steering force.  +/- 1 range.  +ve = steer left
+     * @param error   Error angle in robot relative degrees
+     * @param PCoeff  Proportional Gain Coefficient
+     * @return
+     */
+    public double getSteer(double error, double PCoeff) {
+        return Range.clip(error * PCoeff, -1, 1);
+    }
+    private double getAngle(BNO055IMU imu)
+    {
+        // We experimentally determined the Z axis is the axis we want to use for heading angle.
+        // We have to process the angle because the imu works in euler angles so the Z axis is
+        // returned as 0 to +180 or 0 to -180 rolling back to -179 or +179 when rotation passes
+        // 180 degrees. We detect this transition and track the total cumulative angle of rotation.
+
+        Orientation angles = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
+
+        double deltaAngle = angles.firstAngle - lastAngles.firstAngle;
+
+        if (deltaAngle < -180)
+            deltaAngle += 360;
+        else if (deltaAngle > 180)
+            deltaAngle -= 360;
+
+        globalAngle += deltaAngle;
+
+        lastAngles = angles;
+
+        return globalAngle;
+    }
+
+    /**
+     * See if we are moving in a straight line and if not return a power correction value.
+     * @return Power adjustment, + is adjust left - is adjust right.
+     */
+    public void initIMU() {
+
+        BNO055IMU.Parameters IMUparameters = new BNO055IMU.Parameters();
+        IMUparameters.angleUnit = BNO055IMU.AngleUnit.DEGREES;
+        IMUparameters.accelUnit = BNO055IMU.AccelUnit.METERS_PERSEC_PERSEC;
+        IMUparameters.calibrationDataFile = "BNO055IMUCalibration.json";
+        IMUparameters.loggingEnabled = true;
+        IMUparameters.loggingTag = "IMU";
+
+        imu = hardwareMap.get(BNO055IMU.class, "imu");
+        imu.initialize(IMUparameters);
+
+    }
+
+    //Everything after this is copied
+    private void resetAngle(BNO055IMU imu)
+    {
+        lastAngles = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
+
+        globalAngle = 0;
+    }
+
+    /**
+     * Get current cumulative angle rotation from last reset.
+     * @return Angle in degrees. + = left, - = right.
+     */
     //---------------------------------------------------------------------NON VUFORIA ---------------------------------
 
 
