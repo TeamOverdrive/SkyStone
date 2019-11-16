@@ -89,13 +89,13 @@ public class RedFoundation extends LinearOpMode {
         // Wait for the start button to be pressed.
         waitForStart();
 
-        moveInch(-20, 0.2f, 4);
+        moveInch(-20, 0.2, 0);
         drive.move(0);
         update();
 
         strafeInch(10, 0.5f, 7);
 
-        moveInch(-14, 0.2f, 4);
+        moveInch(-14, 0.2f, 0);
 
         drive.move(0);
         update();
@@ -104,13 +104,13 @@ public class RedFoundation extends LinearOpMode {
 
         sleep(1000);
 
-        moveInch(30, 0.6f, 10);
+        moveInch(30, 0.6f, 0);
 
         strafeInch(8, 0.6f, 3);
 
         gyroTurn(0.4f, 90);
 
-        moveInch(-6, 0.4f, 2);
+        moveInch(-6, 0.4f, 90);
 
         strafeInch(12, 0.6f, 2);
 
@@ -126,7 +126,7 @@ public class RedFoundation extends LinearOpMode {
 
         sleep(15000);
 
-        moveInch(34, 1, 3);
+        moveInch(34, 1, 90);
         update();
 
     }
@@ -167,61 +167,92 @@ public class RedFoundation extends LinearOpMode {
         motorBackLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
 
     }
+    public void moveInch ( int inches,
+                            double speed,
+                            double angle) {
 
-    public void moveInch(int inches, float speed, float timeout) {
+        int     newLeftTarget;
+        int     newRightTarget;
+        int     moveCounts;
+        double  max;
+        double  error;
+        double  steer;
+        double  leftSpeed;
+        double  rightSpeed;
 
-        float targetAngle = angles.firstAngle;
-        double error = 0, steer;
-        ElapsedTime runtime = new ElapsedTime();
-        int motorFrontRightTP = motorFrontRight.getCurrentPosition() + (int) (inches * drive.COUNTS_PER_INCH);
-        int motorBackRightTP = motorBackRight.getCurrentPosition() + (int) (inches * drive.COUNTS_PER_INCH);
-        int motorFrontLeftTP = motorFrontLeft.getCurrentPosition() + (int) (inches * drive.COUNTS_PER_INCH);
-        int motorBackLeftTP = motorBackLeft.getCurrentPosition() + (int) (inches * drive.COUNTS_PER_INCH);
+        // Ensure that the opmode is still active
+        if (opModeIsActive()) {
 
-        motorFrontRight.setTargetPosition(motorFrontRightTP);
-        motorBackRight.setTargetPosition(motorBackRightTP);
-        motorFrontLeft.setTargetPosition(motorFrontLeftTP);
-        motorBackLeft.setTargetPosition(motorBackLeftTP);
+            // Determine new target position, and pass to motor controller
+            int motorFrontRightTP = motorFrontRight.getCurrentPosition() + (int) (inches * drive.COUNTS_PER_INCH);
+            int motorBackRightTP = motorBackRight.getCurrentPosition() + (int) (inches * drive.COUNTS_PER_INCH);
+            int motorFrontLeftTP = motorFrontLeft.getCurrentPosition() + (int) (inches * drive.COUNTS_PER_INCH);
+            int motorBackLeftTP = motorBackLeft.getCurrentPosition() + (int) (inches * drive.COUNTS_PER_INCH);
 
-        motorFrontRight.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        motorBackRight.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        motorFrontLeft.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        motorBackLeft.setMode(DcMotor.RunMode.RUN_TO_POSITION);
 
-        runtime.reset();
+            // Set Target and Turn On RUN_TO_POSITION
+            motorFrontRight.setTargetPosition(motorFrontRightTP);
+            motorBackRight.setTargetPosition(motorBackRightTP);
+            motorFrontLeft.setTargetPosition(motorFrontLeftTP);
+            motorBackLeft.setTargetPosition(motorBackLeftTP);
 
-        motorFrontRight.setPower(Math.abs(speed));
-        motorBackRight.setPower(Math.abs(speed));
-        motorFrontLeft.setPower(Math.abs(speed));
-        motorBackLeft.setPower(Math.abs(speed));
+            motorFrontRight.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+            motorBackRight.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+            motorFrontLeft.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+            motorBackLeft.setMode(DcMotor.RunMode.RUN_TO_POSITION);
 
-        while (opModeIsActive() &&
-                (runtime.seconds() < timeout) &&
-                (motorFrontRight.isBusy() && motorBackRight.isBusy() && motorFrontLeft.isBusy() && motorBackLeft.isBusy())) {
+            // start motion.
+            speed = Range.clip(Math.abs(speed), 0.0, 1.0);
 
-            error = drive.getError(targetAngle, angles);
-            steer = drive.getSteer(error, P_DRIVE_COEFF);
+            runtime.reset();
 
-            // if driving in reverse, the motor correction also needs to be reversed
-            if (inches < 0)
-                steer *= -1.0;
+            motorFrontRight.setPower(Math.abs(speed));
+            motorBackRight.setPower(Math.abs(speed));
+            motorFrontLeft.setPower(Math.abs(speed));
+            motorBackLeft.setPower(Math.abs(speed));
 
-            motorFrontRight.setPower(Math.abs(speed + steer));
-            motorBackRight.setPower(Math.abs(speed + steer));
-            motorFrontLeft.setPower(Math.abs(speed - steer));
-            motorBackLeft.setPower(Math.abs(speed - steer));
+            // keep looping while we are still active, and BOTH motors are running.
+            while (opModeIsActive() &&
+                    (motorFrontRight.isBusy() && motorFrontLeft.isBusy())) {
 
+                // adjust relative speed based on heading error.
+                error = drive.getError(angle,angles);
+                steer = drive.getSteer(error, P_DRIVE_COEFF);
+
+                // if driving in reverse, the motor correction also needs to be reversed
+                if (inches < 0)
+                    steer *= -1.0;
+
+                leftSpeed = speed - steer;
+                rightSpeed = speed + steer;
+
+                // Normalize speeds if either one exceeds +/- 1.0;
+                max = Math.max(Math.abs(leftSpeed), Math.abs(rightSpeed));
+                if (max > 1.0)
+                {
+                    leftSpeed /= max;
+                    rightSpeed /= max;
+                }
+
+                motorFrontRight.setPower(Math.abs(rightSpeed));
+                motorBackRight.setPower(Math.abs(rightSpeed));
+                motorFrontLeft.setPower(Math.abs(leftSpeed));
+                motorBackLeft.setPower(Math.abs(leftSpeed));
+
+                // Display drive status for the driver.
+            }
+
+            // Stop all motion;
+            motorFrontRight.setPower(0);
+            motorBackRight.setPower(0);
+            motorFrontLeft.setPower(0);
+            motorBackLeft.setPower(0);
+
+            motorFrontRight.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+            motorBackRight.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+            motorFrontLeft.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+            motorBackLeft.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         }
-
-        motorFrontRight.setPower(0);
-        motorBackRight.setPower(0);
-        motorFrontLeft.setPower(0);
-        motorBackLeft.setPower(0);
-
-        motorFrontRight.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        motorBackRight.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        motorFrontLeft.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        motorBackLeft.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
     }
 
     public void initIMU() {
