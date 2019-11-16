@@ -32,17 +32,7 @@ public class DriveTrain {
     static final double HEADING_THRESHOLD = 1;
 
 
-    public DriveTrain(OpMode linearOpMode) {
-        initMotors(linearOpMode);
-    }
-
-    public void initMotors(OpMode linearOpMode) {
-
-        motorBackLeft = linearOpMode.hardwareMap.get(DcMotor.class, "left_back");
-        motorBackRight = linearOpMode.hardwareMap.get(DcMotor.class, "right_back");
-        motorFrontLeft = linearOpMode.hardwareMap.get(DcMotor.class, "left_front");
-        motorFrontRight = linearOpMode.hardwareMap.get(DcMotor.class, "right_front");
-
+    public DriveTrain() {
     }
 
     public void move(double angle, double r, double tanRight) {
