@@ -48,9 +48,9 @@ public class AutoTesting extends LinearOpMode {
                 currentPosition++;
 
             }
-            if (gamepad1.b) {
+            if (gamepad1.x) {
                 distanceTraveled = 0;
-                while (gamepad1.b) {
+                while (gamepad1.x) {
                     strafeInch(1, 0.1f, 10);
                     distanceTraveled++;
                 }
@@ -59,9 +59,9 @@ public class AutoTesting extends LinearOpMode {
                 currentPosition++;
 
             }
-            if (gamepad1.x) {
+            if (gamepad1.b) {
                 distanceTraveled = 0;
-                while (gamepad1.x) {
+                while (gamepad1.b) {
                     strafeInch(-1, 0.1f, 10);
                     distanceTraveled++;
                 }
