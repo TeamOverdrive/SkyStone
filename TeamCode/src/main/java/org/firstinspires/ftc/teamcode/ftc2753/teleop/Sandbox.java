@@ -63,7 +63,7 @@ public class Sandbox extends LinearOpMode {
         motorBackLeft = hardwareMap.get(DcMotor.class, "left_back");
         motorBackRight = hardwareMap.get(DcMotor.class, "right_back");
         motorFrontLeft = hardwareMap.get(DcMotor.class, "left_front");
-        motorFrontRight = hardwareMap.get(DcMotor.class, "right_front");
+        motorFrontRight = hardwareMap.get(DcMotor.class, "right_front"); // why is this here
 
         motorBackRight.setDirection(DcMotor.Direction.REVERSE);
         motorFrontRight.setDirection(DcMotor.Direction.REVERSE);
