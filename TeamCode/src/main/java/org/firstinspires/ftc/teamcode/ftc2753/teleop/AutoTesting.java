@@ -31,10 +31,12 @@ public class AutoTesting extends LinearOpMode {
     @Override
     public void runOpMode() {
         Orientation angles;
-        angles = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
+
 
         initMotors();
+        initIMU();
         while (opModeIsActive()) {
+            angles = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
             if (gamepad1.y) {
                 distanceTraveled = 0;
                 while (gamepad1.y) {
@@ -91,6 +93,7 @@ public class AutoTesting extends LinearOpMode {
                 if (output[i] != null)
                     telemetry.addLine(output[i]);
             }
+            telemetry.update();
 
 
         }
