@@ -59,9 +59,9 @@ public class AutoTesting extends LinearOpMode {
                 currentPosition++;
 
             }
-            if (gamepad1.a) {
+            if (gamepad1.x) {
                 distanceTraveled = 0;
-                while (gamepad1.a) {
+                while (gamepad1.x) {
                     strafeInch(-1, 0.1f, 10);
                     distanceTraveled++;
                 }
@@ -70,9 +70,9 @@ public class AutoTesting extends LinearOpMode {
                 currentPosition++;
 
             }
-            if (gamepad1.x) {
+            if (gamepad1.a) {
                 distanceTraveled = 0;
-                while (gamepad1.x) {
+                while (gamepad1.a) {
                     moveInch(-1, 0.1f, angles.firstAngle, angles);
                     distanceTraveled++;
                 }
@@ -86,8 +86,10 @@ public class AutoTesting extends LinearOpMode {
             motorFrontLeft.setPower(gamepad1.left_stick_x);
             motorBackLeft.setPower(gamepad1.left_stick_x);
             if (gamepad1.left_bumper) {
-                output[currentPosition] = "Turn to: " + String.valueOf(angles.firstAngle);
-                currentPosition++;
+                if (!(output[currentPosition-1] == String.valueOf(angles.firstAngle))) {
+                    output[currentPosition] = "Turn to: " + String.valueOf(angles.firstAngle);
+                    currentPosition++;
+                }
             }
             for (int i = 0; i < 100; i++) {
                 if (output[i] != null)
