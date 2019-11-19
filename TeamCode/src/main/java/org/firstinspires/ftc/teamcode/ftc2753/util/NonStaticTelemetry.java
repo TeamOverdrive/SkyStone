@@ -2,7 +2,7 @@ package org.firstinspires.ftc.teamcode.ftc2753.util;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 
-public class nonStaticTelemetry {
+public class NonStaticTelemetry {
 
     public Telemetry telemetry;
     public char[][] output, override;
@@ -13,8 +13,8 @@ public class nonStaticTelemetry {
 
     public String runMode = "PRINT";
 
-    utilities util = new utilities();
-    public nonStaticTelemetry(Telemetry telemetryImport) {
+    OverdriveUtil util = new OverdriveUtil();
+    public NonStaticTelemetry(Telemetry telemetryImport) {
         telemetry = telemetryImport;
         override = new char[12][70];
         output = new char[12][70];

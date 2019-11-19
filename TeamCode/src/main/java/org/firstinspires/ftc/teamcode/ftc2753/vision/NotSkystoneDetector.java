@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode.ftc2753;
+package org.firstinspires.ftc.teamcode.ftc2753.vision;
 
 import org.opencv.core.*;
 import org.opencv.imgproc.*;

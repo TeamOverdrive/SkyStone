@@ -1,10 +1,10 @@
 package org.firstinspires.ftc.teamcode.ftc2753.util;
 
-public class utilities {
+public class OverdriveUtil {
 
     public char[] currentArray;
 
-    public utilities() {
+    public OverdriveUtil() {
         currentArray = new char[50];
     }
 

@@ -12,7 +12,7 @@ import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
 import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
 import org.firstinspires.ftc.teamcode.ftc2753.subsystems.DriveTrain;
-import org.firstinspires.ftc.teamcode.ftc2753.util.nonStaticTelemetry;
+import org.firstinspires.ftc.teamcode.ftc2753.util.NonStaticTelemetry;
 
 
 @Disabled
@@ -36,7 +36,7 @@ public class    Teleop extends LinearOpMode {
 
     private ElapsedTime runtime = new ElapsedTime();
 
-    nonStaticTelemetry telemetry2 = new nonStaticTelemetry(telemetry);
+    NonStaticTelemetry telemetry2 = new NonStaticTelemetry(telemetry);
 
     @Override
     public void runOpMode() throws InterruptedException {

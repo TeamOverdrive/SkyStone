@@ -12,7 +12,7 @@ import java.io.IOException;
 import java.io.InputStream;
 
 /**
- * Set of utilities for loading trajectories from assets (the plugin save location).
+ * Set of OverdriveUtil for loading trajectories from assets (the plugin save location).
  */
 
 public class AssetsTrajectoryLoader {
