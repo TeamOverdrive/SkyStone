@@ -10,8 +10,8 @@ import org.openftc.easyopencv.OpenCvCamera;
 import org.openftc.easyopencv.OpenCvCameraRotation;
 import org.openftc.easyopencv.OpenCvWebcam;
 
-@TeleOp(name = "Vision", group = "vision")
-public class Vision extends LinearOpMode
+@TeleOp(name = "Vuforia", group = "vision")
+public class VuforiaTest extends LinearOpMode
 {
     OpenCvCamera webcam;
 
