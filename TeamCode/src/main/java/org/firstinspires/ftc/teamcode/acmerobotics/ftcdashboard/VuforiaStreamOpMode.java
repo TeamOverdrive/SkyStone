@@ -18,8 +18,9 @@ import org.firstinspires.ftc.teamcode.R;
 @Disabled
 public class VuforiaStreamOpMode extends LinearOpMode {
 
-    // TODO: fill in
-    public static final String VUFORIA_LICENSE_KEY = "YOUR KEY HERE";
+
+    public static final String VUFORIA_LICENSE_KEY =
+            "AasMRnb/////AAABmfnajLJrOEyppDcz2Bh0W2Am2zcR8ujLMs+DIkcviBzeETt1IDXmO9i6rZfti6VsQ008860DREQXS2eiTg5gTbQ9XN0zoLA/c0qsFccWTA+429o3ZyJqDddgdy4FlGDGk+YDsE6nqTSSr3fVDmS5lAZ+3rBEUQ3ksutkZMuNQigcjVH1DPqLFsZWpSCTmyVvfMuu4Va+xEXloMdm0eza0a1xWAj7HZ6uTZiQS4cL+tCFy3o8pQCdpxTqsWMscq9tn//ADCGqz6jTpR5BTiCEx6azarjeL8KI/S608mjxUhUx168yttZOeK9Bo3INNA2D/wGJn/r5EWewYoxcqTAoD/MF8a2ip/Fhvq/RXn7dYXA8";
 
     @Override
     public void runOpMode() throws InterruptedException {
