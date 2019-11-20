@@ -46,7 +46,7 @@ public class Vision extends LinearOpMode
          * (while a streaming session is in flight) *IS* supported.
          */
 
-        webcam.setPipeline(new NotSkystoneDetector());
+        webcam.setPipeline(new StoneDetector());
 
 
         webcam.startStreaming(1280, 720, OpenCvCameraRotation.UPRIGHT);
