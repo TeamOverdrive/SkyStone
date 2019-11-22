@@ -28,6 +28,9 @@ public class Sandbox extends LinearOpMode {
     private Servo sideGrabber;
     private Servo foundationLeft;
     private Servo foundationRight;
+    private Servo leftArm;
+    private Servo rightArm;
+    private Servo grabber;
 
     DriveTrain drive = new DriveTrain();
 
@@ -44,10 +47,28 @@ public class Sandbox extends LinearOpMode {
         sideGrabber = hardwareMap.get(ServoImplEx.class, "sideGrabber");
         foundationLeft = hardwareMap.get(ServoImplEx.class, "foundationLeft");
         foundationRight = hardwareMap.get(ServoImplEx.class, "foundationRight");
+        leftArm = hardwareMap.get(ServoImplEx.class, "ArmLeft");
+        rightArm = hardwareMap.get(ServoImplEx.class, "ArmRight");
+        grabber = hardwareMap.get(ServoImplEx.class, "ArmClaw");
 
         ElapsedTime runtime = new ElapsedTime();
         initIMU();
-        strafeInch(64,0.6f,0);
+        // strafeInch(64,0.6f,0);
+
+        while (opModeIsActive()) {
+            if (gamepad1.a) {
+                setArmPosition(1);
+            } else if (gamepad1.b) {
+                setArmPosition(0);
+            } else if (gamepad1.y) {
+                grabber.setPosition(1);
+            } else if (gamepad1.x) {
+                grabber.setPosition(0);
+            } else if (gamepad1.right_bumper) {
+                grabber.setPosition(0.5);
+            }
+
+        }
 
     }
     public void initMotors() {
@@ -224,5 +245,9 @@ public class Sandbox extends LinearOpMode {
         motorBackRight.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         motorFrontLeft.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         motorBackLeft.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+    }
+    private void setArmPosition(float position){
+        leftArm.setPosition(position);
+        rightArm.setPosition(1-position);
     }
 }

@@ -1,9 +1,11 @@
 package org.firstinspires.ftc.teamcode.ftc2753.auto;
 
+import android.app.Activity;
 import android.graphics.Color;
 import android.view.View;
 
 import com.qualcomm.hardware.bosch.BNO055IMU;
+import com.qualcomm.hardware.rev.Rev2mDistanceSensor;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
@@ -12,6 +14,7 @@ import com.qualcomm.robotcore.hardware.NormalizedColorSensor;
 import com.qualcomm.robotcore.hardware.NormalizedRGBA;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.hardware.ServoImplEx;
+import com.qualcomm.robotcore.hardware.SwitchableLight;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.Range;
 
@@ -38,7 +41,7 @@ public class RedCarryAutoSkeleton extends LinearOpMode {
     DcMotor motorBackRight;
     DcMotor motorFrontLeft;
     DcMotor motorFrontRight;
-    Boolean targetFound;
+    Boolean targetFound = false;
 
     Orientation lastAngles = new Orientation();
     double globalAngle;
@@ -47,6 +50,10 @@ public class RedCarryAutoSkeleton extends LinearOpMode {
     private Servo foundationLeft;
     private Servo foundationRight;
     private Servo intakeLift;
+    private Servo leftArm;
+    private Servo rightArm;
+    private Servo grabber;
+
 
     Orientation angles;
 
@@ -60,6 +67,7 @@ public class RedCarryAutoSkeleton extends LinearOpMode {
 
 
     NormalizedColorSensor colorSensor;
+
     /**
      * The relativeLayout field is used to aid in providing interesting visual feedback
      * in this sample application; you probably *don't* need something analogous when you
@@ -73,18 +81,36 @@ public class RedCarryAutoSkeleton extends LinearOpMode {
         initServos();
         initIMU();
 
+        int relativeLayoutId = hardwareMap.appContext.getResources().getIdentifier("RelativeLayout", "id", hardwareMap.appContext.getPackageName());
+        relativeLayout = ((Activity) hardwareMap.appContext).findViewById(relativeLayoutId);
+
+        distRight = hardwareMap.get(DistanceSensor.class, "rightDistanceSensor");
+
+        Rev2mDistanceSensor sensorTimeOfFlight = (Rev2mDistanceSensor)distRight;
+
+        colorSensor = hardwareMap.get(NormalizedColorSensor.class, "sensor_color");
+
+        intakeLift.setPosition(1);
+
+        if (colorSensor instanceof SwitchableLight) {
+            ((SwitchableLight)colorSensor).enableLight(true);
+        }
+
         waitForStart();
+
+        grabber.setPosition(0);
 
         foundationLeft.setPosition(0.5f);
         foundationRight.setPosition(0.5f);
 
-        //moveInch(-31,1, 0);
-        /*
-        while (distRight.getDistance(DistanceUnit.MM) > 85) {
+        setArmPosition(0.5f);
+        moveInch(-31,1, 0);
+
+        while (distRight.getDistance(DistanceUnit.MM) > 100) {
             drive.move(-0.2f);
             update();
-        } */
-        /* while (!targetFound) {
+        }
+        while (!targetFound) {
 
             NormalizedRGBA colors = colorSensor.getNormalizedColors();
 
@@ -100,37 +126,30 @@ public class RedCarryAutoSkeleton extends LinearOpMode {
                 targetFound = true;
 
             }
-        } */
-        // moveInch(10,0.6f,0);
-        angles = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
-
-        while (angles.firstAngle > -78 && opModeIsActive()) {
-            angles = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
-
-            motorFrontRight.setPower(0.1f);
-            motorBackRight.setPower(0.1f);
-            motorFrontLeft.setPower(0.4);
-            motorBackLeft.setPower(0.4);
-            telemetry.addData(" ",angles.firstAngle);
-            telemetry.update();
         }
+
+        moveInch(-4,0.3f,0);
+        setArmPosition(1);
+        sleep(500);
+        grabber.setPosition(1);
+        sleep(500);
+        setArmPosition(0.8f);
+        moveInch(10,0.6f,0);
         gyroTurn(0.2,-90);
-/*
         moveInch(96 - ((skystonePosition - 1) * 8),0.4,90);
-        gyroTurn(1,0,angles);
+        gyroTurn(1,0);
         moveInch(-12,0.4f,0);
         foundationLeft.setPosition(0.0f);
         foundationRight.setPosition(1.0f);
         sleep(750);
         moveInch(46, 0.6f, 0);
         strafeInch(8, 0.6f, 3);
-        gyroTurn(0.4f, -90,angles);
+        gyroTurn(0.4f, -90);
         foundationLeft.setPosition(0.5f);
         foundationRight.setPosition(0.5f);
         strafeInch(-40, 1f, 3);
-        gyroTurn(0.4f, -90,angles);
+        gyroTurn(0.4f, -90);
         moveInch(150,1,90);
-        */
 
 
 
@@ -395,5 +414,12 @@ public class RedCarryAutoSkeleton extends LinearOpMode {
         foundationLeft = hardwareMap.get(ServoImplEx.class, "foundationLeft");
         foundationRight = hardwareMap.get(ServoImplEx.class, "foundationRight");
         intakeLift = hardwareMap.get(ServoImplEx.class, "liftIntake");
+        leftArm = hardwareMap.get(ServoImplEx.class, "ArmLeft");
+        rightArm = hardwareMap.get(ServoImplEx.class, "ArmRight");
+        grabber = hardwareMap.get(ServoImplEx.class, "ArmClaw");
+    }
+    private void setArmPosition(float position){
+        leftArm.setPosition(position);
+        rightArm.setPosition(1-position);
     }
 }
