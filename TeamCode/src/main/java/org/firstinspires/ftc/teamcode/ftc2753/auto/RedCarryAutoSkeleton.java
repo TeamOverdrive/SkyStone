@@ -1,5 +1,6 @@
 package org.firstinspires.ftc.teamcode.ftc2753.auto;
 
+import android.graphics.Color;
 import android.view.View;
 
 import com.qualcomm.hardware.bosch.BNO055IMU;
@@ -8,6 +9,7 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DistanceSensor;
 import com.qualcomm.robotcore.hardware.NormalizedColorSensor;
+import com.qualcomm.robotcore.hardware.NormalizedRGBA;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.hardware.ServoImplEx;
 import com.qualcomm.robotcore.util.ElapsedTime;
@@ -16,17 +18,16 @@ import com.qualcomm.robotcore.util.Range;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
+import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
 import org.firstinspires.ftc.teamcode.ftc2753.subsystems.DriveTrain;
 
-@Autonomous(name="Red Foundation", group="auto")
-
-public class RedFoundation extends LinearOpMode {
+@Autonomous(name="Skystone", group="auto")
+public class RedCarryAutoSkeleton extends LinearOpMode {
 
     DriveTrain drive = new DriveTrain();
 
     private ElapsedTime runtime = new ElapsedTime();
-    private ElapsedTime waittime = new ElapsedTime();
 
     BNO055IMU imu;
 
@@ -37,12 +38,8 @@ public class RedFoundation extends LinearOpMode {
     DcMotor motorBackRight;
     DcMotor motorFrontLeft;
     DcMotor motorFrontRight;
+    Boolean targetFound;
 
-    private Servo sideGrabber;
-
-    boolean wasYDown = false;
-
-    boolean targetFound = false;
     Orientation lastAngles = new Orientation();
     double globalAngle;
 
@@ -51,9 +48,11 @@ public class RedFoundation extends LinearOpMode {
     private Servo foundationRight;
     private Servo intakeLift;
 
-    private float intakeSpeed;
-
     Orientation angles;
+
+    float[] hsvValues = new float[3];
+
+    int skystonePosition = 1;
 
     static final double P_TURN_COEFF = 0.1;     // Larger is more responsive, but also less stable
     static final double P_DRIVE_COEFF = 0.15;     // Larger is more responsive, but also less stable
@@ -74,51 +73,70 @@ public class RedFoundation extends LinearOpMode {
         initServos();
         initIMU();
 
-        foundationLeft.setPosition(0.5f);
-        foundationRight.setPosition(0.5f);
-
-        // Wait for the start button to be pressed.
         waitForStart();
 
-        moveInch(-20, 0.2, 0);
-        drive.move(0);
-        update();
-
-        strafeInch(10, 0.5f, 7);
-
-        moveInch(-14, 0.2f, 0);
-
-        drive.move(0);
-        update();
-        foundationLeft.setPosition(0.0f);
-        foundationRight.setPosition(1.0f);
-
-        sleep(1000);
-
-        moveInch(30, 0.6f, 0);
-
-        strafeInch(8, 0.6f, 3);
-
-        gyroTurn(0.4f, 90);
-
-        moveInch(-6, 0.4f, 90);
-
-        strafeInch(12, 0.6f, 2);
-
-        drive.move(0);
-        update();
-
-        sleep(500);
-
         foundationLeft.setPosition(0.5f);
         foundationRight.setPosition(0.5f);
 
-        strafeInch(12, 0.6f, 3);
+        //moveInch(-31,1, 0);
+        /*
+        while (distRight.getDistance(DistanceUnit.MM) > 85) {
+            drive.move(-0.2f);
+            update();
+        } */
+        /* while (!targetFound) {
 
-        sleep(15000);
+            NormalizedRGBA colors = colorSensor.getNormalizedColors();
 
-        moveInch(34, 1, 90);
-        update();
+            Color.colorToHSV(colors.toColor(), hsvValues);
+            int color = colors.toColor();
+            if (Color.red((color)) > 0 && (skystonePosition != 3)) {
+               strafeInch(-8,0.3f,0);
+               gyroTurn(0.4,0);
+               skystonePosition ++;
+            } else {
+                drive.move(0);
+                update();
+                targetFound = true;
+
+            }
+        } */
+        // moveInch(10,0.6f,0);
+        angles = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
+
+        while (angles.firstAngle > -78 && opModeIsActive()) {
+            angles = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
+
+            motorFrontRight.setPower(0.1f);
+            motorBackRight.setPower(0.1f);
+            motorFrontLeft.setPower(0.4);
+            motorBackLeft.setPower(0.4);
+            telemetry.addData(" ",angles.firstAngle);
+            telemetry.update();
+        }
+        gyroTurn(0.2,-90);
+/*
+        moveInch(96 - ((skystonePosition - 1) * 8),0.4,90);
+        gyroTurn(1,0,angles);
+        moveInch(-12,0.4f,0);
+        foundationLeft.setPosition(0.0f);
+        foundationRight.setPosition(1.0f);
+        sleep(750);
+        moveInch(46, 0.6f, 0);
+        strafeInch(8, 0.6f, 3);
+        gyroTurn(0.4f, -90,angles);
+        foundationLeft.setPosition(0.5f);
+        foundationRight.setPosition(0.5f);
+        strafeInch(-40, 1f, 3);
+        gyroTurn(0.4f, -90,angles);
+        moveInch(150,1,90);
+        */
+
+
+
+
+
+
 
     }
 
@@ -159,8 +177,8 @@ public class RedFoundation extends LinearOpMode {
 
     }
     public void moveInch ( int inches,
-                            double speed,
-                            double angle) {
+                           double speed,
+                           double angle) {
 
         int     newLeftTarget;
         int     newRightTarget;
@@ -170,6 +188,8 @@ public class RedFoundation extends LinearOpMode {
         double  steer;
         double  leftSpeed;
         double  rightSpeed;
+
+        Orientation angles;
 
         // Ensure that the opmode is still active
         if (opModeIsActive()) {
@@ -371,7 +391,6 @@ public class RedFoundation extends LinearOpMode {
         return onTarget;
     }
     public void initServos(){
-        sideGrabber = hardwareMap.get(ServoImplEx.class, "sideGrabber");
         sensorRotator = hardwareMap.get(ServoImplEx.class, "sensor");
         foundationLeft = hardwareMap.get(ServoImplEx.class, "foundationLeft");
         foundationRight = hardwareMap.get(ServoImplEx.class, "foundationRight");

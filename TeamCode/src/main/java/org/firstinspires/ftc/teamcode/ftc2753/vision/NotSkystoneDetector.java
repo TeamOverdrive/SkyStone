@@ -4,6 +4,8 @@ import org.opencv.core.*;
 import org.opencv.imgproc.*;
 import org.openftc.easyopencv.OpenCvPipeline;
 
+import static org.firstinspires.ftc.teamcode.ftc2753.NotSkystoneDetector.BlurType.get;
+
 /**
  * NotSkystoneDetector class.
  *
@@ -11,6 +13,7 @@ import org.openftc.easyopencv.OpenCvPipeline;
  *
  * @author GRIP
  */
+
 public class NotSkystoneDetector extends OpenCvPipeline {
 
     //Outputs

@@ -10,8 +10,8 @@ import org.openftc.easyopencv.OpenCvCamera;
 import org.openftc.easyopencv.OpenCvCameraRotation;
 import org.openftc.easyopencv.OpenCvWebcam;
 
-@TeleOp(name = "Vision", group = "vision")
-public class Vision extends LinearOpMode
+@TeleOp(name = "Vuforia", group = "vision")
+public class VuforiaTest extends LinearOpMode
 {
     OpenCvCamera webcam;
 
@@ -46,7 +46,7 @@ public class Vision extends LinearOpMode
          * (while a streaming session is in flight) *IS* supported.
          */
 
-        webcam.setPipeline(new StoneDetector());
+        webcam.setPipeline(new NotSkystoneDetector());
 
 
         webcam.startStreaming(1280, 720, OpenCvCameraRotation.UPRIGHT);
