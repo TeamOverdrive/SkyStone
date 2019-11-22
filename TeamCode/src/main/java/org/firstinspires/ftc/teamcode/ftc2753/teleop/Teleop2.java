@@ -1,18 +1,20 @@
 package org.firstinspires.ftc.teamcode.ftc2753.teleop;
 
 import com.acmerobotics.dashboard.config.Config;
+
 import com.qualcomm.hardware.bosch.BNO055IMU;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.hardware.ServoImplEx;
+import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
 import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
-import org.firstinspires.ftc.teamcode.ftc2753.subsystems.*;
+import org.firstinspires.ftc.teamcode.ftc2753.subsystems.DriveTrain;
 
 import java.util.Locale;
 
@@ -26,11 +28,11 @@ public class Teleop2 extends LinearOpMode {
     private DcMotor motorFrontRight;
     private DcMotor intake;
 
-    private Servo sideGrabber;
-    private Servo sensorRotator;
     private Servo foundationLeft;
     private Servo foundationRight;
     private Servo intakeLift;
+    private Servo armClaw;
+    private Servo armLeft, armRight;
 
     private float turnSpeed = 1;
 
@@ -93,6 +95,11 @@ public class Teleop2 extends LinearOpMode {
 
         while (opModeIsActive() && !isStopRequested()) {
 
+            if (gamepad1.y) {
+                imu = hardwareMap.get(BNO055IMU.class, "imu");
+                imu.initialize(parameters);
+            }
+
             angles = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
             teleDrive(angles);
             if (gamepad1.left_bumper) {
@@ -136,34 +143,34 @@ public class Teleop2 extends LinearOpMode {
                 drive.FrontRight += 2 * gamepad1.right_trigger;
             }
 
-            //Servos
-            if(gamepad2.b){
-                sensorRotator.setPosition(sideDown);
-            }
-
-            else{
-                sensorRotator.setPosition(sideUp);
-            }
-
-            sideGrabber.setPosition(grabberDiagnostic);
-            if(gamepad2.b)
+            if(gamepad1.b)
                 grabFoundation();
-            if(gamepad2.x)
+            if(gamepad1.x)
                 releaseFoundation();
-            if (gamepad2.y) {
-                intakeLift.setPosition(0.6);
+
+            if (gamepad2.left_bumper) {
+                intakeLift.setPosition(0.6);//Raise intake
             }
-            if (gamepad2.a) {
-                intakeLift.setPosition(0);
+            if (gamepad2.right_bumper) {
+                intakeLift.setPosition(0);//Lower intake
             }
-            if (gamepad1.y) {
-                imu = hardwareMap.get(BNO055IMU.class, "imu");
-                imu.initialize(parameters);
+
+            if (gamepad2.b) {
+                setArmPosition(0);//Raise arm?
             }
+            if (gamepad2.x) {
+                setArmPosition(1);//Lower arm?
+            }
+
+            if (gamepad2.dpad_up)
+                setArmPosition((float) (armRight.getPosition() + 0.05));
+            if (gamepad2.dpad_down)
+                setArmPosition((float) (armRight.getPosition() - 0.05));
+
             update();
 
             //Telemetry
-            telemetry.addData("Heading (Z?)", formatAngle(angles.angleUnit, angles.firstAngle));
+            telemetry.addData("Heading", formatAngle(angles.angleUnit, angles.firstAngle));
             telemetry.addData("back left ",drive.BackLeft);
             telemetry.addData("front left ",drive.FrontLeft);
             telemetry.addData("front right ",drive.FrontRight);
@@ -183,6 +190,13 @@ public class Teleop2 extends LinearOpMode {
         foundationLeft.setPosition(0.5f);
     }
 
+    private void setArmPosition(float position){
+        armRight.setPosition(position);
+        armLeft.setPosition(1-position);
+    }
+
+
+
     public void initMotors() {
 
         motorBackLeft = hardwareMap.get(DcMotor.class, "left_back");
@@ -197,11 +211,12 @@ public class Teleop2 extends LinearOpMode {
     }
 
     public void initServos(){
-        sideGrabber = hardwareMap.get(ServoImplEx.class, "sideGrabber");
-        sensorRotator = hardwareMap.get(ServoImplEx.class, "sensor");
         foundationLeft = hardwareMap.get(ServoImplEx.class, "foundationLeft");
         foundationRight = hardwareMap.get(ServoImplEx.class, "foundationRight");
         intakeLift = hardwareMap.get(ServoImplEx.class, "liftIntake");
+        armClaw = hardwareMap.get(ServoImplEx.class, "ArmClaw");
+        armLeft = hardwareMap.get(ServoImplEx.class, "ArmLeft");
+        armRight = hardwareMap.get(ServoImplEx.class, "ArmRight");
     }
 
     public void teleDrive(Orientation angles) {
@@ -251,6 +266,7 @@ public class Teleop2 extends LinearOpMode {
     {
         return formatDegrees(AngleUnit.DEGREES.fromUnit(angleUnit, angle));
     }
+
     String formatDegrees(double degrees)
     {
         return String.format(Locale.getDefault(), "%.1f", AngleUnit.DEGREES.normalize(degrees));

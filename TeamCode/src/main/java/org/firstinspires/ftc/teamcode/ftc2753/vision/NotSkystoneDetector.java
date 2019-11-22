@@ -4,7 +4,7 @@ import org.opencv.core.*;
 import org.opencv.imgproc.*;
 import org.openftc.easyopencv.OpenCvPipeline;
 
-import static org.firstinspires.ftc.teamcode.ftc2753.NotSkystoneDetector.BlurType.get;
+import static org.firstinspires.ftc.teamcode.ftc2753.vision.NotSkystoneDetector.BlurType.get;
 
 /**
  * NotSkystoneDetector class.
