@@ -144,7 +144,7 @@ public class VuforiaTemplate extends LinearOpMode {
      * This is the webcam we are to use. As with other hardware devices such as motors and
      * servos, this device is identified using the robot configuration tool in the FTC application.
      */
-    WebcamName Webcam8 = null;
+    WebcamName Webcam1 = null;
 
     private boolean targetVisible = false;
     private float phoneXRotate = 0;
@@ -160,8 +160,8 @@ public class VuforiaTemplate extends LinearOpMode {
     private ElapsedTime runtime = new ElapsedTime();
     private DistanceSensor distRight;
     private DistanceSensor RobotSideDistance;
-    private Servo sideGrabber;
-    private Servo sensorRotator;
+    //private Servo sideGrabber;
+    //private Servo sensorRotator;
     private Servo foundationLeft;
     private Servo foundationRight;
     private Servo intakeLift;
@@ -206,7 +206,7 @@ public class VuforiaTemplate extends LinearOpMode {
     public static double xPos;
     public static double xPosFromDistSensor;
 
-    boolean switchNav = true;
+    public static boolean switchNav = true;
     //-----------------------------------------------------------------
 
     @Override
@@ -214,7 +214,7 @@ public class VuforiaTemplate extends LinearOpMode {
         /*
          * Retrieve the camera we are to use.
          */
-        Webcam8 = hardwareMap.get(WebcamName.class, "Webcam8");
+        Webcam1 = hardwareMap.get(WebcamName.class, "Webcam 1");
 
         /*
          * Configure Vuforia by creating a Parameter object, and passing it to the Vuforia engine.
@@ -231,7 +231,7 @@ public class VuforiaTemplate extends LinearOpMode {
         /**
          * We also indicate which camera on the RC we wish to use.
          */
-        parameters.cameraName = Webcam8;
+        parameters.cameraName = Webcam1;
 
         //  Instantiate the Vuforia engine
         vuforia = ClassFactory.getInstance().createVuforia(parameters);
@@ -393,7 +393,7 @@ public class VuforiaTemplate extends LinearOpMode {
 
 
 
-        sideGrabber.setPosition(0.5f);
+        //sideGrabber.setPosition(0.5f);
         intakeLift.setPosition(1);
         initIMU();
 
@@ -410,8 +410,13 @@ public class VuforiaTemplate extends LinearOpMode {
         // To restore the normal opmode structure, just un-comment the following line:
 
         waitForStart();
+        moveInch(48, 0.5f, 5);
+        intakeLift.setPosition(0);
+        intakeSpeed = 1;
+        setIntakeSpeed();
+        moveInch(5, 0.2f, 7);
 
-
+        //wait(500);
 
 
         //sleep(500);
@@ -489,7 +494,7 @@ public class VuforiaTemplate extends LinearOpMode {
                 //pullOut();
                 //bringBlockUnderBridge();
                 //parkUnderBridge();
-                moveToYCoord();
+                //moveToYCoord();
 
 
             } else {
@@ -563,8 +568,8 @@ public class VuforiaTemplate extends LinearOpMode {
 
 
     public void initServos(){
-        sideGrabber = hardwareMap.get(ServoImplEx.class, "sideGrabber");
-        sensorRotator = hardwareMap.get(ServoImplEx.class, "sensor");
+        //sideGrabber = hardwareMap.get(ServoImplEx.class, "sideGrabber");
+        //sensorRotator = hardwareMap.get(ServoImplEx.class, "sensor");
         foundationLeft = hardwareMap.get(ServoImplEx.class, "foundationLeft");
         foundationRight = hardwareMap.get(ServoImplEx.class, "foundationRight");
         intakeLift = hardwareMap.get(ServoImplEx.class, "liftIntake");

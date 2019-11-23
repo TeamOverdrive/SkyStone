@@ -100,18 +100,21 @@ public class RedCarryAutoSkeleton extends LinearOpMode {
 
         waitForStart();
 
-        grabber.setPosition(1);
+        grabber.setPosition(0);
 
         foundationLeft.setPosition(1f);
         foundationRight.setPosition(0f);
 
         setArmPosition(0.5f);
-        moveInch(-26,0.3, 0); // initial move forwards
+        moveInch(-25,0.2, 0); // initial move forwards
+        strafeInch(26,0.3f, 0);
 
         if (Switch == true) {
-            while (distRight.getDistance(DistanceUnit.MM) > 110) {
+            while (distRight.getDistance(DistanceUnit.MM) > 180) {
                 drive.move(-0.1f);
+                Potato = distRight.getDistance(DistanceUnit.MM)
                 update();
+                telemetry.addLine(Potato)
             }
         }
         else {
@@ -125,29 +128,33 @@ public class RedCarryAutoSkeleton extends LinearOpMode {
             Color.colorToHSV(colors.toColor(), hsvValues);
             int color = colors.toColor();
             sleep(350);
-            if (Color.red((color)) > 0 && (skystonePosition != 3)) {  // if yellow....
+
+            if (Color.red((color)) > 0 && (skystonePosition != 5)) {  // if yellow....
                strafeInch(-8,0.3f,0);
-               gyroTurn(0.4,0);
+               //gyroTurn(0.4,0);
                skystonePosition ++;
+               telemetry.addLine("Skystone Not Detected");
             } else {  //if not yellow...
+                telemetry.addLine("SKYSTONE Detected");
+
                 drive.move(0);
                 update();
                 targetFound = true;
                 Switch = false;
-                moveInch(3,0.25,0); //moves back after detecting skystone
+                //moveInch(4,0.25,0);
+
+                //moveInch(3,0.25,0); //moves back after detecting skystone
 
             }
 
             telemetry.addData("R: ", Color.red(color));
             telemetry.update();
         }
-        //moveInch(4,0.25,5);
 
-        setArmPosition(1);
-        sleep(500);
-        grabber.setPosition(0);
-        sleep(500);
-        setArmPosition(0.8f);
+
+        pickUp();
+
+        /*
         moveInch(10,0.6f,0);
         gyroTurn(0.2,-90);
         moveInch(96 - ((skystonePosition - 1) * 8),0.4,-90);
@@ -165,12 +172,22 @@ public class RedCarryAutoSkeleton extends LinearOpMode {
         gyroTurn(0.4f, -90);
         moveInch(150,1,90);
 
+         */
 
 
 
 
 
 
+
+    }
+
+    public void pickUp() {
+        setArmPosition(1);
+        sleep(1000);
+        grabber.setPosition(1);
+        sleep(500);
+        setArmPosition(0.8f);
     }
 
     public void initMotors() {
