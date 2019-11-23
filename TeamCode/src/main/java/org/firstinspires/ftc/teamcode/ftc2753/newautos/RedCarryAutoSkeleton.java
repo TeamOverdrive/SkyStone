@@ -106,8 +106,7 @@ public class RedCarryAutoSkeleton extends LinearOpMode {
         foundationRight.setPosition(0f);
 
         setArmPosition(0.5f);
-        moveInch(-27,0.3, 0); // initial move forwards
-
+        moveInch(-26,0.3, 0); // initial move forwards
 
         if (Switch == true) {
             while (distRight.getDistance(DistanceUnit.MM) > 110) {
