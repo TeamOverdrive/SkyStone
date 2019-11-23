@@ -61,6 +61,7 @@ public class RedCarryAutoSkeleton extends LinearOpMode {
 
      int skystonePosition = 1;
      boolean Switch = true;
+     public double Potato;
 
 
     static final double P_TURN_COEFF = 0.1;     // Larger is more responsive, but also less stable
@@ -107,14 +108,14 @@ public class RedCarryAutoSkeleton extends LinearOpMode {
 
         setArmPosition(0.5f);
         moveInch(-25,0.2, 0); // initial move forwards
-        strafeInch(26,0.3f, 0);
+        strafeInch(27,0.3f, 0);
 
         if (Switch == true) {
             while (distRight.getDistance(DistanceUnit.MM) > 180) {
                 drive.move(-0.1f);
-                Potato = distRight.getDistance(DistanceUnit.MM)
+                //Potato = distRight.getDistance(DistanceUnit.MM)
                 update();
-                telemetry.addLine(Potato)
+                //telemetry.addLine(Potato);
             }
         }
         else {
@@ -141,13 +142,16 @@ public class RedCarryAutoSkeleton extends LinearOpMode {
                 update();
                 targetFound = true;
                 Switch = false;
-                //moveInch(4,0.25,0);
+                moveInch(2,0.25,0);
+                strafeInch(5,0.3f,0);
+
 
                 //moveInch(3,0.25,0); //moves back after detecting skystone
 
             }
 
             telemetry.addData("R: ", Color.red(color));
+            telemetry.addData("Position: ", skystonePosition);
             telemetry.update();
         }
 
@@ -186,9 +190,13 @@ public class RedCarryAutoSkeleton extends LinearOpMode {
         setArmPosition(1);
         sleep(1000);
         grabber.setPosition(1);
-        sleep(500);
+        sleep(1000);
         setArmPosition(0.8f);
+        sleep(2000);
+
+
     }
+
 
     public void initMotors() {
 
