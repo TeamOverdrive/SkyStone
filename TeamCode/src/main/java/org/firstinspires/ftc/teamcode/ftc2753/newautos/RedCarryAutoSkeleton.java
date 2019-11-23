@@ -84,6 +84,8 @@ public class RedCarryAutoSkeleton extends LinearOpMode {
         initServos();
         initIMU();
 
+        setBrake();
+
         int relativeLayoutId = hardwareMap.appContext.getResources().getIdentifier("RelativeLayout", "id", hardwareMap.appContext.getPackageName());
         relativeLayout = ((Activity) hardwareMap.appContext).findViewById(relativeLayoutId);
 
@@ -107,14 +109,15 @@ public class RedCarryAutoSkeleton extends LinearOpMode {
         foundationRight.setPosition(0f);
 
         setArmPosition(0.5f);
-        moveInch(-25,0.2, 0); // initial move forwards
-        strafeInch(27,0.3f, 0);
+        moveInch(-25,0.3, 0); // initial move forwards
+        strafeInch(25,0.4f, 0);
+        gyroTurn(0.2,0);
 
         if (Switch == true) {
-            while (distRight.getDistance(DistanceUnit.MM) > 180) {
-                drive.move(-0.1f);
-                //Potato = distRight.getDistance(DistanceUnit.MM)
+            while (distRight.getDistance(DistanceUnit.MM) > 120) {
+                drive.move(-0.05f);
                 update();
+
                 //telemetry.addLine(Potato);
             }
         }
@@ -131,7 +134,10 @@ public class RedCarryAutoSkeleton extends LinearOpMode {
             sleep(350);
 
             if (Color.red((color)) > 0 && (skystonePosition != 5)) {  // if yellow....
-               strafeInch(-8,0.3f,0);
+                if (distRight.getDistance(DistanceUnit.MM) < 90) {
+                    moveInch(1,0.05f,0);
+                }
+               strafeInch(-8,0.20f,0);
                //gyroTurn(0.4,0);
                skystonePosition ++;
                telemetry.addLine("Skystone Not Detected");
@@ -143,7 +149,7 @@ public class RedCarryAutoSkeleton extends LinearOpMode {
                 targetFound = true;
                 Switch = false;
                 moveInch(2,0.25,0);
-                strafeInch(5,0.3f,0);
+                strafeInch(-1,0.3f,0);
 
 
                 //moveInch(3,0.25,0); //moves back after detecting skystone
