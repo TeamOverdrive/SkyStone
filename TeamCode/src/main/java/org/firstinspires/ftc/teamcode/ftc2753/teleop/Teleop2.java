@@ -43,6 +43,7 @@ public class Teleop2 extends LinearOpMode {
     boolean wasdpad_up = false;
     boolean wasdpad_left = false;
     boolean wasdpad_right = false;
+    boolean wasXDOWN = false;
 
 
 
@@ -143,32 +144,29 @@ public class Teleop2 extends LinearOpMode {
                 drive.FrontRight += 2 * gamepad1.right_trigger;
             }
 
-            if(gamepad1.b)
-                grabFoundation();
             if(gamepad1.x)
+                grabFoundation();
+            if(gamepad1.b)
                 releaseFoundation();
 
-            if (gamepad2.left_bumper) {
+            if (gamepad2.right_bumper) {
                 intakeLift.setPosition(0.6);//Raise intake
             }
-            if (gamepad2.right_bumper) {
+            if (gamepad2.left_bumper) {
                 intakeLift.setPosition(0);//Lower intake
             }
 
-            if (gamepad2.b) {
-                setArmPosition(0);//Raise arm?
-            }
+            if (gamepad2.y)
+                setArmPosition((float) (armRight.getPosition() + 0.005));
+            if (gamepad2.a)
+                setArmPosition((float) (armRight.getPosition() - 0.005));
             if (gamepad2.x) {
-                setArmPosition(1);//Lower arm?
+                armClaw.setPosition(0.8);
             }
-
-            if (gamepad2.dpad_up)
-                setArmPosition((float) (armRight.getPosition() + 0.05));
-            if (gamepad2.dpad_down)
-                setArmPosition((float) (armRight.getPosition() - 0.05));
-
+            if (gamepad2.b) {
+                armClaw.setPosition(0.25);
+            }
             update();
-
             //Telemetry
             telemetry.addData("Heading", formatAngle(angles.angleUnit, angles.firstAngle));
             telemetry.addData("back left ",drive.BackLeft);

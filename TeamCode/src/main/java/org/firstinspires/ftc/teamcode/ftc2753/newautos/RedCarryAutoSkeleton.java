@@ -113,7 +113,7 @@ public class RedCarryAutoSkeleton extends LinearOpMode {
         strafeInch(25,0.4f, 0);
         gyroTurn(0.2,0);
 
-        if (Switch == true) {
+        /*if (Switch == true) {
             while (distRight.getDistance(DistanceUnit.MM) > 120) {
                 drive.move(-0.05f);
                 update();
@@ -125,6 +125,8 @@ public class RedCarryAutoSkeleton extends LinearOpMode {
             drive.move(0);
             update();
         }
+
+         */
         while (!targetFound) {
 
             NormalizedRGBA colors = colorSensor.getNormalizedColors();
@@ -133,6 +135,8 @@ public class RedCarryAutoSkeleton extends LinearOpMode {
             int color = colors.toColor();
             sleep(350);
 
+            telemetry.addData("Color: ", Color.red(color));
+            telemetry.update();
             if (Color.red((color)) > 0 && (skystonePosition != 5)) {  // if yellow....
                 if (distRight.getDistance(DistanceUnit.MM) < 90) {
                     moveInch(1,0.05f,0);
@@ -164,6 +168,29 @@ public class RedCarryAutoSkeleton extends LinearOpMode {
 
         pickUp();
 
+        moveInch(4,0.4f,0);
+        gyroTurn(0.1,90);
+        strafeInch(2,0.4f,90);
+        gyroTurn(0.1,90);
+        moveInch(-(108 - (skystonePosition * 8)), 0.8,90);
+        gyroTurn(0.25f,0);
+        strafeInch(-7,0.7f,0);
+        moveInch(-14,0.2,0);
+        foundationLeft.setPosition(0.5);
+        foundationRight.setPosition(0.5);
+        // setArmPosition(1);
+        sleep(500);
+        grabber.setPosition(0);
+        sleep(1000);
+        moveInch(44,1,0);
+        setArmPosition(0);
+        strafeInch(20,0.5f,0);
+        gyroTurn(1,90);
+        moveInch(-20,1,90);
+        foundationLeft.setPosition(1f);
+        foundationRight.setPosition(0f);
+        strafeInch(25,1,90);
+        moveInch(45,1,90);
         /*
         moveInch(10,0.6f,0);
         gyroTurn(0.2,-90);
@@ -197,8 +224,8 @@ public class RedCarryAutoSkeleton extends LinearOpMode {
         sleep(1000);
         grabber.setPosition(1);
         sleep(1000);
-        setArmPosition(0.8f);
-        sleep(2000);
+        setArmPosition(0.7f);
+        sleep(500);
 
 
     }

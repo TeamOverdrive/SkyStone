@@ -74,8 +74,8 @@ public class RedFoundation extends LinearOpMode {
         initServos();
         initIMU();
 
-        foundationLeft.setPosition(0.5f);
-        foundationRight.setPosition(0.5f);
+        foundationLeft.setPosition(0.1f);
+        foundationRight.setPosition(0.0f);
 
         // Wait for the start button to be pressed.
         waitForStart();
@@ -90,8 +90,8 @@ public class RedFoundation extends LinearOpMode {
 
         drive.move(0);
         update();
-        foundationLeft.setPosition(0.0f);
-        foundationRight.setPosition(1.0f);
+        foundationLeft.setPosition(0.5f);
+        foundationRight.setPosition(0.5f);
 
         sleep(1000);
 
@@ -110,8 +110,8 @@ public class RedFoundation extends LinearOpMode {
 
         sleep(500);
 
-        foundationLeft.setPosition(0.5f);
-        foundationRight.setPosition(0.5f);
+        foundationLeft.setPosition(1f);
+        foundationRight.setPosition(0f);
 
         strafeInch(12, 0.6f, 3);
 
