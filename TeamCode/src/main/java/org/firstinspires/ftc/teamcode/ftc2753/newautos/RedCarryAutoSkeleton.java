@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode.ftc2753.auto;
+package org.firstinspires.ftc.teamcode.ftc2753.newautos;
 
 import android.app.Activity;
 import android.graphics.Color;
@@ -59,7 +59,9 @@ public class RedCarryAutoSkeleton extends LinearOpMode {
 
     float[] hsvValues = new float[3];
 
-    int skystonePosition = 1;
+     int skystonePosition = 1;
+     boolean Switch = true;
+
 
     static final double P_TURN_COEFF = 0.1;     // Larger is more responsive, but also less stable
     static final double P_DRIVE_COEFF = 0.15;     // Larger is more responsive, but also less stable
@@ -98,16 +100,23 @@ public class RedCarryAutoSkeleton extends LinearOpMode {
 
         waitForStart();
 
-        grabber.setPosition(0);
+        grabber.setPosition(1);
 
-        foundationLeft.setPosition(0.5f);
-        foundationRight.setPosition(0.5f);
+        foundationLeft.setPosition(1f);
+        foundationRight.setPosition(0f);
 
         setArmPosition(0.5f);
-        moveInch(-31,1, 0);
+        moveInch(-27,0.3, 0); // initial move forwards
 
-        while (distRight.getDistance(DistanceUnit.MM) > 100) {
-            drive.move(-0.2f);
+
+        if (Switch == true) {
+            while (distRight.getDistance(DistanceUnit.MM) > 110) {
+                drive.move(-0.1f);
+                update();
+            }
+        }
+        else {
+            drive.move(0);
             update();
         }
         while (!targetFound) {
@@ -116,27 +125,33 @@ public class RedCarryAutoSkeleton extends LinearOpMode {
 
             Color.colorToHSV(colors.toColor(), hsvValues);
             int color = colors.toColor();
-            if (Color.red((color)) > 0 && (skystonePosition != 3)) {
+            sleep(350);
+            if (Color.red((color)) > 0 && (skystonePosition != 3)) {  // if yellow....
                strafeInch(-8,0.3f,0);
                gyroTurn(0.4,0);
                skystonePosition ++;
-            } else {
+            } else {  //if not yellow...
                 drive.move(0);
                 update();
                 targetFound = true;
+                Switch = false;
+                moveInch(3,0.25,0); //moves back after detecting skystone
 
             }
-        }
 
-        moveInch(-4,0.3f,0);
+            telemetry.addData("R: ", Color.red(color));
+            telemetry.update();
+        }
+        //moveInch(4,0.25,5);
+
         setArmPosition(1);
         sleep(500);
-        grabber.setPosition(1);
+        grabber.setPosition(0);
         sleep(500);
         setArmPosition(0.8f);
         moveInch(10,0.6f,0);
         gyroTurn(0.2,-90);
-        moveInch(96 - ((skystonePosition - 1) * 8),0.4,90);
+        moveInch(96 - ((skystonePosition - 1) * 8),0.4,-90);
         gyroTurn(1,0);
         moveInch(-12,0.4f,0);
         foundationLeft.setPosition(0.0f);
