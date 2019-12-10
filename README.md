@@ -183,7 +183,7 @@ Version 4.2 (built on 18.10.30)
      - Users should not need to be connected to the Internet for subsequent builds.
      - This should also fix buid issue where Android Studio would complain that it "Could not find com.android.tools.lint:lint-gradle:26.1.4" (or similar).
  * Added support for REV Spark Mini motor controller as part of the configuration menu for a servo/PWM port on the REV Expansion Hub.
- * Provide examples for playing audio files in an Op Mode.
+ * Provide org.firstinspires.ftc.teamcode.examples for playing audio files in an Op Mode.
  * Block Development Tool Changes
      - Includes a fix for a problem with the Velocity blocks that were reported in the FTC Technology forum (Blocks Programming subforum).
      - Change the "Save completed successfully." message to a white color so it will contrast with a green background.
