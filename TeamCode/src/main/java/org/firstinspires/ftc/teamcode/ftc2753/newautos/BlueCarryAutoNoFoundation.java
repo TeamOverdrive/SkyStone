@@ -1,11 +1,15 @@
-package org.firstinspires.ftc.teamcode.ftc2753.teleop;
+package org.firstinspires.ftc.teamcode.ftc2753.newautos;
 
+import android.app.Activity;
 import android.graphics.Color;
+import android.view.View;
 
 import com.qualcomm.hardware.bosch.BNO055IMU;
+import com.qualcomm.hardware.rev.Rev2mDistanceSensor;
+import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
-import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DistanceSensor;
 import com.qualcomm.robotcore.hardware.NormalizedColorSensor;
 import com.qualcomm.robotcore.hardware.NormalizedRGBA;
 import com.qualcomm.robotcore.hardware.Servo;
@@ -17,53 +21,81 @@ import com.qualcomm.robotcore.util.Range;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
+import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
 import org.firstinspires.ftc.teamcode.ftc2753.subsystems.DriveTrain;
 
-import static org.firstinspires.ftc.teamcode.ftc2753.teleop.AutoTesting.P_DRIVE_COEFF;
+@Autonomous(name="Red Skystone NEW", group="auto")
+public class BlueCarryAutoNoFoundation extends LinearOpMode {
 
-@TeleOp(name="Test Me", group = "tests")
-public class Sandbox extends LinearOpMode {
+    DriveTrain drive = new DriveTrain();
 
-    private DcMotor motorBackLeft;
-    private DcMotor motorBackRight;
-    private DcMotor motorFrontLeft;
-    private DcMotor motorFrontRight;
+    private ElapsedTime runtime = new ElapsedTime();
 
-    private Servo sideGrabber;
+    BNO055IMU imu;
+
+    private DistanceSensor distRight;
+    private DistanceSensor distLeft;
+
+    DcMotor motorBackLeft;
+    DcMotor motorBackRight;
+    DcMotor motorFrontLeft;
+    DcMotor motorFrontRight;
+    Boolean targetFound = false;
+
+    Orientation lastAngles = new Orientation();
+    double globalAngle;
+
+    private Servo sensorRotator;
     private Servo foundationLeft;
     private Servo foundationRight;
+    private Servo intakeLift;
     private Servo leftArm;
     private Servo rightArm;
     private Servo grabber;
 
-    NormalizedColorSensor colorSensor;
-
-    DriveTrain drive = new DriveTrain();
-
-    BNO055IMU imu;
 
     Orientation angles;
 
     float[] hsvValues = new float[3];
 
+    int skystonePosition = 1;
+    boolean Switch = true;
+    public double Potato;
 
-    public void runOpMode() {
+
+    static final double P_TURN_COEFF = 0.1;     // Larger is more responsive, but also less stable
+    static final double P_DRIVE_COEFF = 0.15;     // Larger is more responsive, but also less stable
+    static final double HEADING_THRESHOLD = 1;      // As tight as we can make it with an integer gyro
+
+
+    NormalizedColorSensor colorSensor;
+
+    /**
+     * The relativeLayout field is used to aid in providing interesting visual feedback
+     * in this sample application; you probably *don't* need something analogous when you
+     * use a color sensor on your robot
+     */
+    View relativeLayout;
+
+    public void runOpMode() throws InterruptedException {
 
         initMotors();
-
-        sideGrabber = hardwareMap.get(ServoImplEx.class, "sideGrabber");
-        foundationLeft = hardwareMap.get(ServoImplEx.class, "foundationLeft");
-        foundationRight = hardwareMap.get(ServoImplEx.class, "foundationRight");
-        leftArm = hardwareMap.get(ServoImplEx.class, "ArmLeft");
-        rightArm = hardwareMap.get(ServoImplEx.class, "ArmRight");
-        grabber = hardwareMap.get(ServoImplEx.class, "ArmClaw");
-
-        ElapsedTime runtime = new ElapsedTime();
+        initServos();
         initIMU();
-        // strafeInch(64,0.6f,0);
+
+        setBrake();
+
+        int relativeLayoutId = hardwareMap.appContext.getResources().getIdentifier("RelativeLayout", "id", hardwareMap.appContext.getPackageName());
+        relativeLayout = ((Activity) hardwareMap.appContext).findViewById(relativeLayoutId);
+
+        distRight = hardwareMap.get(DistanceSensor.class, "rightDistanceSensor");
+
+        Rev2mDistanceSensor sensorTimeOfFlight = (Rev2mDistanceSensor)distRight;
 
         colorSensor = hardwareMap.get(NormalizedColorSensor.class, "sensor_color");
+
+        intakeLift.setPosition(1);
 
         if (colorSensor instanceof SwitchableLight) {
             ((SwitchableLight)colorSensor).enableLight(true);
@@ -71,30 +103,173 @@ public class Sandbox extends LinearOpMode {
 
         waitForStart();
 
-        while (opModeIsActive()) {
+        grabber.setPosition(0);
+
+        foundationLeft.setPosition(1f);
+        foundationRight.setPosition(0f);
+
+        setArmPosition(0.5f);
+        moveInch(-25,0.3, 0); // initial move forwards
+        strafeInch(-25,0.4f, 0);
+        gyroTurn(0.2,0);
+
+        if (Switch == true) {
+            while (distRight.getDistance(DistanceUnit.MM) > 120) {
+                drive.move(-0.05f);
+                update();
+
+                //telemetry.addLine(Potato);
+            }
+        }
+        else {
+            drive.move(0);
+            update();
+        }
+
+
+        while (!targetFound) {
+
             NormalizedRGBA colors = colorSensor.getNormalizedColors();
 
             Color.colorToHSV(colors.toColor(), hsvValues);
             int color = colors.toColor();
+            sleep(350);
 
-            telemetry.addData("Color: ", Color.alpha(color));
+            telemetry.addData("Color: ", Color.red(color));
+            telemetry.update();
+            if ((skystonePosition != 5)) {  // if yellow....
+                /*if (distRight.getDistance(DistanceUnit.MM) < 90) {
+                    moveInch(1,0.05f,0);
+                }
+
+                 */
+                strafeInch(8,0.20f,0);
+                //gyroTurn(0.4,0);
+                skystonePosition ++;
+                telemetry.addLine("Skystone Not Detected");
+            } else {  //if not yellow...
+                telemetry.addLine("SKYSTONE Detected");
+
+                drive.move(0);
+                update();
+                targetFound = true;
+                Switch = false;
+                moveInch(2,0.25,0);
+                strafeInch(3,0.3f,0);
+
+
+                //moveInch(3,0.25,0); //moves back after detecting skystone
+
+            }
+
+            telemetry.addData("R: ", Color.red(color));
+            telemetry.addData("Position: ", skystonePosition);
             telemetry.update();
         }
+
+
+        pickUp();
+
+        // Position to move over bridge
+        moveInch(4,0.4f,0);
+        gyroTurn(0.1,-90);
+        strafeInch(-2,0.4f,-90);
+        gyroTurn(0.1,-90);
+
+        // Move over bridge
+        moveInch(-(90 - (skystonePosition * 8)), 0.8,-90);
+
+        // Turn and grab foundation
+        grabber.setPosition(0);
+        sleep(1000);
+
+        // Move back while pulling the foundation
+        moveInch(90 + (skystonePosition * 8),1,-90);
+        // Reset Arm to inside robot
+        setArmPosition(0);
+        gyroTurn(0.4,0);
+        // Move to maximise leverage and then turn with foundation
+        strafeInch(-20,0.5f,0);
+
+        if (Switch == true) {
+            while (distRight.getDistance(DistanceUnit.MM) > 120) {
+                drive.move(-0.05f);
+                update();
+
+                //telemetry.addLine(Potato);
+            }
+        }
+        else {
+            drive.move(0);
+            update();
+        }
+
+        pickUp();
+        skystonePosition = 1;
+        moveInch(4,0.4f,0);
+        gyroTurn(0.1,-90);
+        strafeInch(-2,0.4f,-90);
+        gyroTurn(0.1,-90);
+
+
+        moveInch(-(90 - (skystonePosition * 8)), 0.8,-90);
+
+        // Turn and grab foundation
+        grabber.setPosition(0);
+        sleep(1000);
+
+        moveInch(30,1,-90);
+
+
     }
+
+    public void pickUp() {
+        setArmPosition(1);
+        sleep(1000);
+        grabber.setPosition(1);
+        sleep(1000);
+        setArmPosition(0.75f);
+        sleep(500);
+
+
+    }
+
+
     public void initMotors() {
 
         motorBackLeft = hardwareMap.get(DcMotor.class, "left_back");
         motorBackRight = hardwareMap.get(DcMotor.class, "right_back");
         motorFrontLeft = hardwareMap.get(DcMotor.class, "left_front");
-        motorFrontRight = hardwareMap.get(DcMotor.class, "right_front"); // why is this here
+        motorFrontRight = hardwareMap.get(DcMotor.class, "right_front");
 
         motorBackRight.setDirection(DcMotor.Direction.REVERSE);
         motorFrontRight.setDirection(DcMotor.Direction.REVERSE);
 
-        motorBackLeft.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        motorFrontLeft.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        motorBackRight.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        motorFrontLeft.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+    }
+
+    public void update() {
+        motorFrontLeft.setPower(drive.FrontLeft);
+        motorFrontRight.setPower(drive.FrontRight);
+        motorBackLeft.setPower(drive.BackLeft);
+        motorBackRight.setPower(drive.BackRight);
+
+    }
+
+    public void setBrake() {
+
+        motorFrontRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        motorBackRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        motorFrontLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        motorBackLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+    }
+
+    public void removeBrake() {
+
+        motorFrontLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
+        motorBackRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
+        motorFrontLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
+        motorBackLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
+
     }
     public void moveInch ( int inches,
                            double speed,
@@ -108,6 +283,8 @@ public class Sandbox extends LinearOpMode {
         double  steer;
         double  leftSpeed;
         double  rightSpeed;
+
+        Orientation angles;
 
         // Ensure that the opmode is still active
         if (opModeIsActive()) {
@@ -132,6 +309,8 @@ public class Sandbox extends LinearOpMode {
 
             // start motion.
             speed = Range.clip(Math.abs(speed), 0.0, 1.0);
+
+            runtime.reset();
 
             motorFrontRight.setPower(Math.abs(speed));
             motorBackRight.setPower(Math.abs(speed));
@@ -182,8 +361,8 @@ public class Sandbox extends LinearOpMode {
             motorFrontLeft.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
             motorBackLeft.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         }
-
     }
+
     public void initIMU() {
 
         BNO055IMU.Parameters IMUparameters = new BNO055IMU.Parameters();
@@ -197,6 +376,14 @@ public class Sandbox extends LinearOpMode {
         imu.initialize(IMUparameters);
 
     }
+
+    //Everything after this is copied
+    private void resetAngle(BNO055IMU imu) {
+        lastAngles = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
+
+        globalAngle = 0;
+    }
+
     public void strafeInch(int inches, float speed, float angle) {
 
         Orientation angles;
@@ -219,6 +406,8 @@ public class Sandbox extends LinearOpMode {
         motorBackRight.setMode(DcMotor.RunMode.RUN_TO_POSITION);
         motorFrontLeft.setMode(DcMotor.RunMode.RUN_TO_POSITION);
         motorBackLeft.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+
+        this.runtime.reset();
 
         motorFrontRight.setPower(Math.abs(speed));
         motorBackRight.setPower(Math.abs(speed));
@@ -255,6 +444,55 @@ public class Sandbox extends LinearOpMode {
         motorBackRight.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         motorFrontLeft.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         motorBackLeft.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+    }
+    public void gyroTurn (  double speed, double angle) {
+
+        // keep looping while we are still active, and not on heading.
+        angles = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
+        while (opModeIsActive() && !onHeading(speed, angle, P_TURN_COEFF, angles)) {
+            // Update telemetry & Allow time for other processes to run.
+            telemetry.update();
+            angles = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
+        }
+    }
+    public boolean onHeading(double speed, double angle, double PCoeff, Orientation angles) {
+        double   error ;
+        double   steer ;
+        boolean  onTarget = false ;
+        double leftSpeed;
+        double rightSpeed;
+
+        // determine turn power based on +/- error
+        error = drive.getError(angle,angles);
+
+        if (Math.abs(error) <= this.HEADING_THRESHOLD) {
+            steer = 0.0;
+            leftSpeed  = 0.0;
+            rightSpeed = 0.0;
+            onTarget = true;
+        }
+        else {
+            steer = drive.getSteer(error, PCoeff);
+            rightSpeed  = speed * steer;
+            leftSpeed   = -rightSpeed;
+        }
+
+        // Send desired speeds to motors.
+        motorBackLeft.setPower(leftSpeed);
+        motorFrontLeft.setPower(leftSpeed);
+        motorBackRight.setPower(rightSpeed);
+        motorFrontRight.setPower(rightSpeed);
+
+        return onTarget;
+    }
+    public void initServos(){
+        sensorRotator = hardwareMap.get(ServoImplEx.class, "sensor");
+        foundationLeft = hardwareMap.get(ServoImplEx.class, "foundationLeft");
+        foundationRight = hardwareMap.get(ServoImplEx.class, "foundationRight");
+        intakeLift = hardwareMap.get(ServoImplEx.class, "liftIntake");
+        leftArm = hardwareMap.get(ServoImplEx.class, "ArmLeft");
+        rightArm = hardwareMap.get(ServoImplEx.class, "ArmRight");
+        grabber = hardwareMap.get(ServoImplEx.class, "ArmClaw");
     }
     private void setArmPosition(float position){
         leftArm.setPosition(position);

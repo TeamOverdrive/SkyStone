@@ -25,7 +25,7 @@ import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
 import org.firstinspires.ftc.teamcode.ftc2753.subsystems.DriveTrain;
 
-@Autonomous(name="Skystone", group="auto")
+@Autonomous(name="Blue Skystone", group="auto")
 public class RedCarryAutoSkeleton extends LinearOpMode {
 
     DriveTrain drive = new DriveTrain();
@@ -113,7 +113,7 @@ public class RedCarryAutoSkeleton extends LinearOpMode {
         strafeInch(25,0.4f, 0);
         gyroTurn(0.2,0);
 
-        /*if (Switch == true) {
+        if (Switch == true) {
             while (distRight.getDistance(DistanceUnit.MM) > 120) {
                 drive.move(-0.05f);
                 update();
@@ -126,7 +126,7 @@ public class RedCarryAutoSkeleton extends LinearOpMode {
             update();
         }
 
-         */
+
         while (!targetFound) {
 
             NormalizedRGBA colors = colorSensor.getNormalizedColors();
@@ -137,10 +137,12 @@ public class RedCarryAutoSkeleton extends LinearOpMode {
 
             telemetry.addData("Color: ", Color.red(color));
             telemetry.update();
-            if (Color.red((color)) > 0 && (skystonePosition != 5)) {  // if yellow....
-                if (distRight.getDistance(DistanceUnit.MM) < 90) {
+            if (Color.red((color)) > 1 && (skystonePosition != 5)) {  // if yellow....
+                /*if (distRight.getDistance(DistanceUnit.MM) < 90) {
                     moveInch(1,0.05f,0);
                 }
+
+                 */
                strafeInch(-8,0.20f,0);
                //gyroTurn(0.4,0);
                skystonePosition ++;
@@ -153,7 +155,7 @@ public class RedCarryAutoSkeleton extends LinearOpMode {
                 targetFound = true;
                 Switch = false;
                 moveInch(2,0.25,0);
-                strafeInch(-1,0.3f,0);
+                strafeInch(3,0.3f,0);
 
 
                 //moveInch(3,0.25,0); //moves back after detecting skystone
@@ -168,11 +170,16 @@ public class RedCarryAutoSkeleton extends LinearOpMode {
 
         pickUp();
 
+        // Position to move over bridge
         moveInch(4,0.4f,0);
         gyroTurn(0.1,90);
         strafeInch(2,0.4f,90);
         gyroTurn(0.1,90);
+
+        // Move over bridge
         moveInch(-(108 - (skystonePosition * 8)), 0.8,90);
+
+        // Turn and grab foundation
         gyroTurn(0.25f,0);
         strafeInch(-7,0.7f,0);
         moveInch(-14,0.2,0);
@@ -180,41 +187,31 @@ public class RedCarryAutoSkeleton extends LinearOpMode {
         foundationRight.setPosition(0.5);
         // setArmPosition(1);
         sleep(500);
+
+        // Drop block
         grabber.setPosition(0);
         sleep(1000);
+
+        // Move back while pulling the foundation
         moveInch(44,1,0);
+
+        // Reset Arm to inside robot
         setArmPosition(0);
+
+        // Move to maximise leverage and then turn with foundation
         strafeInch(20,0.5f,0);
         gyroTurn(1,90);
+
+        // Push it towards the wall and release
         moveInch(-20,1,90);
         foundationLeft.setPosition(1f);
         foundationRight.setPosition(0f);
-        strafeInch(25,1,90);
-        moveInch(45,1,90);
-        /*
-        moveInch(10,0.6f,0);
-        gyroTurn(0.2,-90);
-        moveInch(96 - ((skystonePosition - 1) * 8),0.4,-90);
-        gyroTurn(1,0);
-        moveInch(-12,0.4f,0);
-        foundationLeft.setPosition(0.0f);
-        foundationRight.setPosition(1.0f);
-        sleep(750);
-        moveInch(46, 0.6f, 0);
-        strafeInch(8, 0.6f, 3);
-        gyroTurn(0.4f, -90);
-        foundationLeft.setPosition(0.5f);
-        foundationRight.setPosition(0.5f);
-        strafeInch(-40, 1f, 3);
-        gyroTurn(0.4f, -90);
-        moveInch(150,1,90);
+        sleep(500);
 
-         */
-
-
-
-
-
+        // Move back under bridge
+        strafeInch(3,1,90);
+        gyroTurn(0.3,90);
+        moveInch(40,0.8,90);
 
 
     }
@@ -224,7 +221,7 @@ public class RedCarryAutoSkeleton extends LinearOpMode {
         sleep(1000);
         grabber.setPosition(1);
         sleep(1000);
-        setArmPosition(0.7f);
+        setArmPosition(0.75f);
         sleep(500);
 
 

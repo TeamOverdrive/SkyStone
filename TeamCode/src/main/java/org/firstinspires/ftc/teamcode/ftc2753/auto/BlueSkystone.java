@@ -8,6 +8,7 @@ import com.acmerobotics.dashboard.config.Config;
 import com.qualcomm.hardware.bosch.BNO055IMU;
 import com.qualcomm.hardware.rev.Rev2mDistanceSensor;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DistanceSensor;
@@ -27,6 +28,7 @@ import org.firstinspires.ftc.teamcode.ftc2753.subsystems.DriveTrain;
 
 import static org.firstinspires.ftc.robotcore.external.navigation.AxesOrder.XYZ;
 
+@Disabled
 @Config
 @Autonomous(name="Blue Skystone", group="auto")
 

@@ -84,7 +84,7 @@ public class RedFoundation extends LinearOpMode {
         drive.move(0);
         update();
 
-        strafeInch(10, 0.5f, 7);
+        strafeInch(10, 0.5f, 0);
 
         moveInch(-14, 0.2f, 0);
 
@@ -97,13 +97,13 @@ public class RedFoundation extends LinearOpMode {
 
         moveInch(30, 0.6f, 0);
 
-        strafeInch(8, 0.6f, 3);
+        strafeInch(8, 0.6f, 0);
 
         gyroTurn(0.4f, 90);
 
         moveInch(-6, 0.4f, 90);
 
-        strafeInch(12, 0.6f, 2);
+        strafeInch(12, 0.6f, 90);
 
         drive.move(0);
         update();
@@ -113,7 +113,7 @@ public class RedFoundation extends LinearOpMode {
         foundationLeft.setPosition(1f);
         foundationRight.setPosition(0f);
 
-        strafeInch(12, 0.6f, 3);
+        strafeInch(12, 0.6f, 90);
 
         sleep(15000);
 

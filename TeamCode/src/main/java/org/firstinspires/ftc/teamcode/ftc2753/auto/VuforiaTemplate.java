@@ -31,6 +31,7 @@ package org.firstinspires.ftc.teamcode.ftc2753.auto;
 
 import com.qualcomm.hardware.bosch.BNO055IMU;
 import com.qualcomm.hardware.rev.Rev2mDistanceSensor;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
@@ -94,6 +95,7 @@ import static org.firstinspires.ftc.robotcore.external.navigation.VuforiaLocaliz
  * is explained below.
  */
 
+@Disabled
 @TeleOp(name="SKYSTONE Vuforia Nav Webcam", group ="Concept")
 
 public class VuforiaTemplate extends LinearOpMode {

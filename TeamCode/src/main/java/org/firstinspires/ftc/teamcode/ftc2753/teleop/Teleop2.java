@@ -148,7 +148,10 @@ public class Teleop2 extends LinearOpMode {
                 grabFoundation();
             if(gamepad1.b)
                 releaseFoundation();
-
+            if (gamepad1.a) {
+                foundationRight.setPosition(0.0f);
+                foundationLeft.setPosition(1.0f);
+            }
             if (gamepad2.right_bumper) {
                 intakeLift.setPosition(0.6);//Raise intake
             }
