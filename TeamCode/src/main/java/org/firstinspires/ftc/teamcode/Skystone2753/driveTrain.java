@@ -22,13 +22,15 @@ public class driveTrain extends Robot {
     private double[] powers = {frontLeftPower, frontRightPower,backLeftPower,backRightPower};
 
     coefficients driveK = new coefficients();
-    DistanceUnit inches = new DistanceUnit(43.465342326685739);
-    DistanceUnit activeUnit = 
-
-    String unit = "INCH";
+    DistanceUnit INCHES = new DistanceUnit(43.465342326685739);
+    DistanceUnit MM = new DistanceUnit( 1.711233949);
+    DistanceUnit CM = new DistanceUnit(17.11233949);
+    DistanceUnit FEET = new DistanceUnit(521.5841084);
+    DistanceUnit activeUnit;
 
     public driveTrain(SandboxAuto opMode) {
         init(opMode);
+        activeUnit = INCHES;
 
     }
 
@@ -213,10 +215,10 @@ public class driveTrain extends Robot {
         if (opMode.opModeIsActive()) {
 
             // Determine new target position, and pass to motor controller
-            int motorFrontRightTP = frontRight.getCurrentPosition() + (int) (inches * stringToUnit(this.unit).COUNTS_PER_UNIT);
-            int motorBackRightTP = backRight.getCurrentPosition() + (int) (inches * stringToUnit(this.unit).COUNTS_PER_UNIT);
-            int motorFrontLeftTP = frontLeft.getCurrentPosition() + (int) (inches * stringToUnit(this.unit).COUNTS_PER_UNIT);
-            int motorBackLeftTP = backLeft.getCurrentPosition() + (int) (inches * stringToUnit(this.unit).COUNTS_PER_UNIT);
+            int motorFrontRightTP = frontRight.getCurrentPosition() + (int) (inches * activeUnit.COUNTS_PER_UNIT);
+            int motorBackRightTP = backRight.getCurrentPosition() + (int) (inches * activeUnit.COUNTS_PER_UNIT);
+            int motorFrontLeftTP = frontLeft.getCurrentPosition() + (int) (inches * activeUnit.COUNTS_PER_UNIT);
+            int motorBackLeftTP = backLeft.getCurrentPosition() + (int) (inches * activeUnit.COUNTS_PER_UNIT);
 
 
             // Set Target and Turn On RUN_TO_POSITION
@@ -281,10 +283,10 @@ public class driveTrain extends Robot {
         if (opMode.opModeIsActive()) {
 
             // Determine new target position, and pass to motor controller
-            int motorFrontRightTP = frontRight.getCurrentPosition() + (int) (inches * stringToUnit(this.unit).COUNTS_PER_UNIT);
-            int motorBackRightTP = backRight.getCurrentPosition() + (int) (inches * stringToUnit(this.unit).COUNTS_PER_UNIT);
-            int motorFrontLeftTP = frontLeft.getCurrentPosition() + (int) (inches * stringToUnit(this.unit).COUNTS_PER_UNIT);
-            int motorBackLeftTP = backLeft.getCurrentPosition() + (int) (inches * stringToUnit(this.unit).COUNTS_PER_UNIT);
+            int motorFrontRightTP = frontRight.getCurrentPosition() + (int) (inches * activeUnit.COUNTS_PER_UNIT);
+            int motorBackRightTP = backRight.getCurrentPosition() + (int) (inches * activeUnit.COUNTS_PER_UNIT);
+            int motorFrontLeftTP = frontLeft.getCurrentPosition() + (int) (inches * activeUnit.COUNTS_PER_UNIT);
+            int motorBackLeftTP = backLeft.getCurrentPosition() + (int) (inches * activeUnit.COUNTS_PER_UNIT);
 
 
             // Set Target and Turn On RUN_TO_POSITION
@@ -338,11 +340,7 @@ public class driveTrain extends Robot {
             this.kill();
         }
     }
-    public DistanceUnit stringToUnit(String name) {
-        if (name.equals("INCH")) {
-            return inches;
-        } else {
-            return inches;
-        }
+    public void setUnit(DistanceUnit unit) {
+        activeUnit = unit;
     }
 }
