@@ -23,10 +23,11 @@ public class driveTrain extends Robot {
 
     coefficients driveK = new coefficients();
     DistanceUnit inches = new DistanceUnit(43.465342326685739);
+    DistanceUnit activeUnit = 
 
     String unit = "INCH";
 
-    public driveTrain(LinearOpMode opMode) {
+    public driveTrain(SandboxAuto opMode) {
         init(opMode);
 
     }
@@ -340,8 +341,7 @@ public class driveTrain extends Robot {
     public DistanceUnit stringToUnit(String name) {
         if (name.equals("INCH")) {
             return inches;
-        }
-        else {
+        } else {
             return inches;
         }
     }

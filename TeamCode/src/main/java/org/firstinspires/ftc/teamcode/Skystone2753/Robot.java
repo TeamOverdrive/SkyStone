@@ -1,27 +1,18 @@
 package org.firstinspires.ftc.teamcode.Skystone2753;
 
-import com.acmerobotics.roadrunner.drive.Drive;
 import com.qualcomm.hardware.bosch.BNO055IMU;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
-
 import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
-import org.firstinspires.ftc.teamcode.ftc2753.subsystems.DriveTrain;
+import org.firstinspires.ftc.teamcode.ftc2753.teleop.Sandbox;
 
 public class Robot extends subsystems {
 
     BNO055IMU imu;
     Orientation angles;
 
-    BNO055IMU.Parameters parameters = new BNO055IMU.Parameters();
     driveTrain drive;
 
-    public Robot(LinearOpMode opMode) {
-
-        parameters.angleUnit = BNO055IMU.AngleUnit.DEGREES;
-        parameters.accelUnit = BNO055IMU.AccelUnit.METERS_PERSEC_PERSEC;
-        parameters.calibrationDataFile = "BNO055IMUCalibration.json";
-        parameters.loggingEnabled = true;
-        parameters.loggingTag = "IMU";
+    public Robot(SandboxAuto opMode) {
 
         init(opMode);
 
@@ -30,10 +21,17 @@ public class Robot extends subsystems {
     }
     public Robot() {
     }
-    public void init(LinearOpMode opMode) {
+    public void init(SandboxAuto opMode) {
+
+        BNO055IMU.Parameters IMUparameters = new BNO055IMU.Parameters();
+        IMUparameters.angleUnit = BNO055IMU.AngleUnit.DEGREES;
+        IMUparameters.accelUnit = BNO055IMU.AccelUnit.METERS_PERSEC_PERSEC;
+        IMUparameters.calibrationDataFile = "BNO055IMUCalibration.json";
+        IMUparameters.loggingEnabled = true;
+        IMUparameters.loggingTag = "IMU";
 
         imu = opMode.hardwareMap.get(BNO055IMU.class, "imu");
-        imu.initialize(this.parameters);
+        imu.initialize(IMUparameters);
 
     }
     public driveTrain getDrive() {
