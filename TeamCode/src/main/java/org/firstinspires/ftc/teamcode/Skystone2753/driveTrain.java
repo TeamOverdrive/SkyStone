@@ -2,6 +2,7 @@ package org.firstinspires.ftc.teamcode.Skystone2753;
 
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.Range;
 
@@ -28,17 +29,20 @@ public class driveTrain extends Robot {
     DistanceUnit FEET = new DistanceUnit(521.5841084);
     DistanceUnit activeUnit;
 
-    public driveTrain(SandboxAuto opMode) {
-        init(opMode);
+    public driveTrain (LinearOpMode inLinearOpMode) {
+
         activeUnit = INCHES;
+        super.linearOpMode = inLinearOpMode;
 
     }
 
-    public void init(LinearOpMode opMode) {
-        backLeft = opMode.hardwareMap.get(DcMotor.class, "left_back");
-        backRight = opMode.hardwareMap.get(DcMotor.class, "right_back");
-        frontLeft = opMode.hardwareMap.get(DcMotor.class, "left_front");
-        frontRight = opMode.hardwareMap.get(DcMotor.class, "right_front");
+    public void initDrive() {
+        super.linearOpMode.telemetry.addLine("InitDrive");
+        super.linearOpMode.telemetry.update();
+        backLeft = super.linearOpMode.hardwareMap.get(DcMotor.class, "left_back");
+        backRight = super.linearOpMode.hardwareMap.get(DcMotor.class, "right_back");
+        frontLeft = super.linearOpMode.hardwareMap.get(DcMotor.class, "left_front");
+        frontRight = super.linearOpMode.hardwareMap.get(DcMotor.class, "right_front");
 
         backRight.setDirection(DcMotor.Direction.REVERSE);
         frontRight.setDirection(DcMotor.Direction.REVERSE);
