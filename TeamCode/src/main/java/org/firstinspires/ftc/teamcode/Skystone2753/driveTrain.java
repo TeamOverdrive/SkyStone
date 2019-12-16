@@ -205,7 +205,7 @@ public class driveTrain extends Robot {
     public double clip(double speed) {
         return Range.clip(Math.abs(speed), 0.0, 1.0);
     }
-    public void moveDist( int inches, double speed, double angle, LinearOpMode opMode) {
+    public void moveDist( int inches, double speed, double angle) {
         double  max;
         double  error;
         double  steer;
@@ -216,7 +216,7 @@ public class driveTrain extends Robot {
         ElapsedTime runtime = new ElapsedTime();
 
         // Ensure that the opmode is still active
-        if (opMode.opModeIsActive()) {
+        if (super.linearOpMode.opModeIsActive()) {
 
             // Determine new target position, and pass to motor controller
             int motorFrontRightTP = frontRight.getCurrentPosition() + (int) (inches * activeUnit.COUNTS_PER_UNIT);
@@ -244,7 +244,7 @@ public class driveTrain extends Robot {
             move(Math.abs(speed));
 
             // keep looping while we are still active, and BOTH motors are running.
-            while (opMode.opModeIsActive() &&
+            while (super.linearOpMode.opModeIsActive() &&
                     (frontRight.isBusy() && frontLeft.isBusy())) {
 
                 angles = super.imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
@@ -273,7 +273,7 @@ public class driveTrain extends Robot {
             this.kill();
         }
     }
-    public void moveDist( int inches, double speed, LinearOpMode opMode) {
+    public void moveDist( int inches, double speed) {
         double  max;
         double  error;
         double  steer;
@@ -284,7 +284,7 @@ public class driveTrain extends Robot {
         ElapsedTime runtime = new ElapsedTime();
 
         // Ensure that the opmode is still active
-        if (opMode.opModeIsActive()) {
+        if (super.linearOpMode.opModeIsActive()) {
 
             // Determine new target position, and pass to motor controller
             int motorFrontRightTP = frontRight.getCurrentPosition() + (int) (inches * activeUnit.COUNTS_PER_UNIT);
@@ -316,7 +316,7 @@ public class driveTrain extends Robot {
             double angle = angles.firstAngle;
 
             // keep looping while we are still active, and BOTH motors are running.
-            while (opMode.opModeIsActive() &&
+            while (super.linearOpMode.opModeIsActive() &&
                     (frontRight.isBusy() && frontLeft.isBusy())) {
                 angles = super.imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
 

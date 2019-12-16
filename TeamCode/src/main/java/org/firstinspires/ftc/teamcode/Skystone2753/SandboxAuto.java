@@ -16,16 +16,8 @@ public class SandboxAuto extends LinearOpMode {
     @Override
     public void runOpMode() throws InterruptedException {
         robot.init(this);
-        //initMotors();
-        telemetry.addLine("Robot Initialized");
-        telemetry.update();
         waitForStart();
-        while (opModeIsActive()) {
-            telemetry.addLine("opmodeIsActive");
-            telemetry.update();
-            idle();
-        }
-         //   robot.getDrive().moveDist(24,1,this);
+        robot.getDrive().moveDist(3,0.3);
     }
     public void initMotors() {
 
