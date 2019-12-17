@@ -362,8 +362,10 @@ public class driveTrain extends Robot {
         double leftSpeed;
         double rightSpeed;
 
+        angles = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
+
         // determine turn power based on +/- error
-        error = drive.getError(angle,angles);
+        error = getError(angle,angles);
 
         if (Math.abs(error) <= driveK.HEADING_THRESHOLD) {
             steer = 0.0;
