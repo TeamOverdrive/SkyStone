@@ -19,7 +19,6 @@ import java.util.List;
 public class driveTrain extends Robot {
 
     public DcMotor frontLeft,frontRight,backLeft,backRight;
-    private DcMotor[] motors = {frontLeft,frontRight,backLeft,backRight};
     public double frontLeftPower, frontRightPower,backLeftPower,backRightPower;
     private double[] powers = {frontLeftPower, frontRightPower,backLeftPower,backRightPower};
 
@@ -52,17 +51,19 @@ public class driveTrain extends Robot {
 
     }
     public void brake() {
-        for (int i = 0; i < motors.length; i++) {
-            motors[i].setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        }
+        frontLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        frontRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        backLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        backRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
     }
     public void brake(DcMotor motor) {
             motor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
     }
     public void removeBrake() {
-        for (int i = 0; i < motors.length; i++) {
-            motors[i].setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
-        }
+        frontLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
+        frontRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
+        backLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
+        backRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
     }
     public void removeBrake(DcMotor motor) {
         motor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
@@ -195,14 +196,7 @@ public class driveTrain extends Robot {
     public double getPower(DcMotor motor) {
         return motor.getPower();
     }
-    /* public double[] getPower(){
-        double[] returnArray = new double[4];
-        for (int i = 0; i < motors.length; i++) {
-            returnArray[i] = motors[i].getPower();
-        }
-        return returnArray;
-    } */
-    public double getError(double targetAngle, Orientation angles) {
+    private double getError(double targetAngle, Orientation angles) {
 
         double robotError;
 
@@ -212,10 +206,10 @@ public class driveTrain extends Robot {
         while (robotError <= -180) robotError += 360;
         return robotError;
     }
-    public double getSteer(double error, double PCoeff) {
+    private double getSteer(double error, double PCoeff) {
         return Range.clip(error * PCoeff, -1, 1);
     }
-    public double clip(double speed) {
+    private double clip(double speed) {
         return Range.clip(Math.abs(speed), 0.0, 1.0);
     }
     public void moveDist( int dist, double speed, double angle) {
@@ -360,5 +354,50 @@ public class driveTrain extends Robot {
     }
     public void setUnit(DistanceUnit unit) {
         COUNTS = unit.COUNTS_PER_UNIT;
+    }
+    private boolean onHeading(double speed, double angle, double PCoeff, Orientation angles) {
+        double   error ;
+        double   steer ;
+        boolean  onTarget = false ;
+        double leftSpeed;
+        double rightSpeed;
+
+        // determine turn power based on +/- error
+        error = drive.getError(angle,angles);
+
+        if (Math.abs(error) <= driveK.HEADING_THRESHOLD) {
+            steer = 0.0;
+            leftSpeed  = 0.0;
+            rightSpeed = 0.0;
+            onTarget = true;
+        }
+        else {
+            steer = drive.getSteer(error, PCoeff);
+            rightSpeed  = speed * steer;
+            leftSpeed   = -rightSpeed;
+        }
+
+        // Send desired speeds to motors.
+        backLeft.setPower(leftSpeed);
+        frontLeft.setPower(leftSpeed);
+        backRight.setPower(rightSpeed);
+        frontRight.setPower(rightSpeed);
+
+        return onTarget;
+    }
+    public void turn(double speed, double angle) {
+        angles = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
+        while (linearOpMode.opModeIsActive() && !onHeading(speed, angle, driveK.P_TURN_COEFF, angles)) {
+            // Update telemetry & Allow time for other processes to run.
+            angles = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
+        }
+        adjustTurn(0.1,angle);
+    }
+    private void adjustTurn(double speed, double angle) {
+        angles = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
+        while (linearOpMode.opModeIsActive() && !onHeading(speed, angle, driveK.P_TURN_COEFF, angles)) {
+            // Update telemetry & Allow time for other processes to run.
+            angles = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
+        }
     }
 }
