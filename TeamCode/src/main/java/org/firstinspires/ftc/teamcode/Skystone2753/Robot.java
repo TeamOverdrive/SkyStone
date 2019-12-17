@@ -17,7 +17,7 @@ public class Robot {
 
     public driveTrain drive = null;
 
-    public Robot(SandboxAuto linearOpMode) {
+    public Robot(LinearOpMode linearOpMode) {
         init(linearOpMode);
     }
     public Robot() {}
@@ -25,8 +25,6 @@ public class Robot {
     public void init(LinearOpMode linearOpMode) {
 
         this.linearOpMode = linearOpMode;
-        linearOpMode.telemetry.addLine("Inside Robot.init");
-        linearOpMode.telemetry.update();
         BNO055IMU.Parameters IMUparameters = new BNO055IMU.Parameters();
         IMUparameters.angleUnit = BNO055IMU.AngleUnit.DEGREES;
         IMUparameters.accelUnit = BNO055IMU.AccelUnit.METERS_PERSEC_PERSEC;
@@ -36,12 +34,8 @@ public class Robot {
 
         imu = linearOpMode.hardwareMap.get(BNO055IMU.class, "imu");
         imu.initialize(IMUparameters);
-        drive = new driveTrain(linearOpMode);
-        linearOpMode.telemetry.addLine("beforeInitDrive");
-        linearOpMode.telemetry.update();
+        drive = new driveTrain(linearOpMode,imu);
         drive.initDrive();
-        linearOpMode.telemetry.addLine("afterInitDrive");
-        linearOpMode.telemetry.update();
 
     }
     public driveTrain getDrive() {

@@ -17,7 +17,8 @@ public class SandboxAuto extends LinearOpMode {
     public void runOpMode() throws InterruptedException {
         robot.init(this);
         waitForStart();
-        robot.getDrive().moveDist(3,0.3);
+        robot.getDrive().setUnit(robot.getDrive().INCHES);
+        robot.getDrive().moveDist(2,0.1);
     }
     public void initMotors() {
 

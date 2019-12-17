@@ -1,5 +1,6 @@
 package org.firstinspires.ftc.teamcode.Skystone2753;
 
+import com.qualcomm.hardware.bosch.BNO055IMU;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.HardwareMap;
@@ -27,12 +28,13 @@ public class driveTrain extends Robot {
     DistanceUnit MM = new DistanceUnit( 1.711233949);
     DistanceUnit CM = new DistanceUnit(17.11233949);
     DistanceUnit FEET = new DistanceUnit(521.5841084);
-    DistanceUnit activeUnit;
+    double COUNTS;
 
-    public driveTrain (LinearOpMode inLinearOpMode) {
+    public driveTrain (LinearOpMode inLinearOpMode, BNO055IMU imu) {
 
-        activeUnit = INCHES;
+        COUNTS = INCHES.COUNTS_PER_UNIT;
         super.linearOpMode = inLinearOpMode;
+        super.imu = imu;
 
     }
 
@@ -66,14 +68,16 @@ public class driveTrain extends Robot {
         motor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
     }
     public void kill() {
-        for (int i = 0; i < motors.length; i++) {
-            motors[i].setPower(0);
-        }
+        frontLeftPower = 0;
+        frontRightPower = 0;
+        backLeftPower = 0;
+        backRightPower = 0;
     }
     public void setPower(double speed) {
-        for (int i = 0; i < motors.length; i++) {
-            powers[i] = speed;
-        }
+        frontLeftPower = speed;
+        frontRightPower = speed;
+        backLeftPower = speed;
+        backRightPower = speed;
     }
     public void setPower(double leftSpeed, double rightSpeed) {
         frontLeftPower = leftSpeed;
@@ -111,9 +115,16 @@ public class driveTrain extends Robot {
         }
     }
     public void drive() {
-        for (int i = 0; i < motors.length; i++) {
+        /*for (int i = 0; i < motors.length; i++) {
             motors[i].setPower(powers[i]);
         }
+
+         */
+        backLeft.setPower(backLeftPower);
+        backRight.setPower(backRightPower);
+        frontLeft.setPower(frontLeftPower);
+        frontRight.setPower(frontRightPower);
+
     }
     public void move(double speed) {
         setPower(speed);
@@ -137,9 +148,10 @@ public class driveTrain extends Robot {
         drive();
     }
     public void addPower(double speed) {
-        for (int i = 0; i < motors.length; i++) {
-            powers[i] += speed;
-        }
+        frontLeftPower += speed;
+        frontRightPower += speed;
+        backLeftPower += speed;
+        backRightPower += speed;
     }
     public void addPower(double leftSpeed, double rightSpeed) {
         frontLeftPower += leftSpeed;
@@ -163,9 +175,10 @@ public class driveTrain extends Robot {
 
     }
     public void dilatePower(double dilation) {
-        for (int i = 0; i < motors.length; i++) {
-            powers[i] *= dilation;
-        }
+        frontLeftPower *= dilation;
+        frontRightPower *= dilation;
+        backLeftPower *= dilation;
+        backRightPower *= dilation;
     }
     public void dilatePower(double leftDilation, double rightDilation) {
         frontLeftPower *= leftDilation;
@@ -205,7 +218,7 @@ public class driveTrain extends Robot {
     public double clip(double speed) {
         return Range.clip(Math.abs(speed), 0.0, 1.0);
     }
-    public void moveDist( int inches, double speed, double angle) {
+    public void moveDist( int dist, double speed, double angle) {
         double  max;
         double  error;
         double  steer;
@@ -219,10 +232,10 @@ public class driveTrain extends Robot {
         if (super.linearOpMode.opModeIsActive()) {
 
             // Determine new target position, and pass to motor controller
-            int motorFrontRightTP = frontRight.getCurrentPosition() + (int) (inches * activeUnit.COUNTS_PER_UNIT);
-            int motorBackRightTP = backRight.getCurrentPosition() + (int) (inches * activeUnit.COUNTS_PER_UNIT);
-            int motorFrontLeftTP = frontLeft.getCurrentPosition() + (int) (inches * activeUnit.COUNTS_PER_UNIT);
-            int motorBackLeftTP = backLeft.getCurrentPosition() + (int) (inches * activeUnit.COUNTS_PER_UNIT);
+            int motorFrontRightTP = frontRight.getCurrentPosition() + (int) (dist * COUNTS);
+            int motorBackRightTP = backRight.getCurrentPosition() + (int) (dist * COUNTS);
+            int motorFrontLeftTP = frontLeft.getCurrentPosition() + (int) (dist * COUNTS);
+            int motorBackLeftTP = backLeft.getCurrentPosition() + (int) (dist * COUNTS);
 
 
             // Set Target and Turn On RUN_TO_POSITION
@@ -254,7 +267,7 @@ public class driveTrain extends Robot {
                 steer = this.getSteer(error, driveK.P_DRIVE_COEFF);
 
                 // if driving in reverse, the motor correction also needs to be reversed
-                if (inches < 0)
+                if (dist < 0)
                     steer *= -1.0;
 
                 leftSpeed = speed - (steer * 0.1);
@@ -273,7 +286,7 @@ public class driveTrain extends Robot {
             this.kill();
         }
     }
-    public void moveDist( int inches, double speed) {
+    public void moveDist( int dist, double speed) {
         double  max;
         double  error;
         double  steer;
@@ -287,10 +300,11 @@ public class driveTrain extends Robot {
         if (super.linearOpMode.opModeIsActive()) {
 
             // Determine new target position, and pass to motor controller
-            int motorFrontRightTP = frontRight.getCurrentPosition() + (int) (inches * activeUnit.COUNTS_PER_UNIT);
-            int motorBackRightTP = backRight.getCurrentPosition() + (int) (inches * activeUnit.COUNTS_PER_UNIT);
-            int motorFrontLeftTP = frontLeft.getCurrentPosition() + (int) (inches * activeUnit.COUNTS_PER_UNIT);
-            int motorBackLeftTP = backLeft.getCurrentPosition() + (int) (inches * activeUnit.COUNTS_PER_UNIT);
+
+            int motorFrontRightTP = frontRight.getCurrentPosition() + (int) (dist * COUNTS);
+            int motorBackRightTP = backRight.getCurrentPosition() + (int) (dist * COUNTS);
+            int motorFrontLeftTP = frontLeft.getCurrentPosition() + (int) (dist * COUNTS);
+            int motorBackLeftTP = backLeft.getCurrentPosition() + (int) (dist * COUNTS);
 
 
             // Set Target and Turn On RUN_TO_POSITION
@@ -325,7 +339,7 @@ public class driveTrain extends Robot {
                 steer = this.getSteer(error, driveK.P_DRIVE_COEFF);
 
                 // if driving in reverse, the motor correction also needs to be reversed
-                if (inches < 0)
+                if (dist < 0)
                     steer *= -1.0;
 
                 leftSpeed = speed - (steer * 0.1);
@@ -345,6 +359,6 @@ public class driveTrain extends Robot {
         }
     }
     public void setUnit(DistanceUnit unit) {
-        activeUnit = unit;
+        COUNTS = unit.COUNTS_PER_UNIT;
     }
 }
