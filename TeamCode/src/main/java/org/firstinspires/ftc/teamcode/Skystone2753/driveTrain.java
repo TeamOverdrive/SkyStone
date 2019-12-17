@@ -356,13 +356,13 @@ public class driveTrain extends Robot {
         COUNTS = unit.COUNTS_PER_UNIT;
     }
     private boolean onHeading(double speed, double angle, double PCoeff, Orientation angles) {
-        double   error ;
+        double   error = 0;
         double   steer ;
         boolean  onTarget = false ;
         double leftSpeed;
         double rightSpeed;
 
-        angles = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
+        // angles = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
 
         // determine turn power based on +/- error
         error = getError(angle,angles);
@@ -374,32 +374,27 @@ public class driveTrain extends Robot {
             onTarget = true;
         }
         else {
-            steer = drive.getSteer(error, PCoeff);
+            steer = getSteer(error, PCoeff);
             rightSpeed  = speed * steer;
             leftSpeed   = -rightSpeed;
         }
 
         // Send desired speeds to motors.
-        backLeft.setPower(leftSpeed);
-        frontLeft.setPower(leftSpeed);
-        backRight.setPower(rightSpeed);
-        frontRight.setPower(rightSpeed);
+        move(leftSpeed,rightSpeed);
 
         return onTarget;
     }
-    public void turn(double speed, double angle) {
+    public void turnTo(double speed, double angle) {
         angles = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
         while (linearOpMode.opModeIsActive() && !onHeading(speed, angle, driveK.P_TURN_COEFF, angles)) {
             // Update telemetry & Allow time for other processes to run.
             angles = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
         }
-        adjustTurn(0.1,angle);
+
     }
-    private void adjustTurn(double speed, double angle) {
-        angles = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
-        while (linearOpMode.opModeIsActive() && !onHeading(speed, angle, driveK.P_TURN_COEFF, angles)) {
-            // Update telemetry & Allow time for other processes to run.
-            angles = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
-        }
+    public void turn(double speed, double angle) {
+        turnTo(speed,angle);
+        linearOpMode.sleep(100);
+        turnTo(0.2,angle);
     }
 }
