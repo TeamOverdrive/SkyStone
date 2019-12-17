@@ -68,11 +68,14 @@ public class driveTrain extends Robot {
     public void removeBrake(DcMotor motor) {
         motor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
     }
+    public void kill(DcMotor motor) {
+        motor.setPower(0);
+    }
     public void kill() {
-        frontLeftPower = 0;
-        frontRightPower = 0;
-        backLeftPower = 0;
-        backRightPower = 0;
+        backLeft.setPower(0);
+        backRight.setPower(0);
+        frontLeft.setPower(0);
+        frontRight.setPower(0);
     }
     public void setPower(double speed) {
         frontLeftPower = speed;
@@ -101,7 +104,7 @@ public class driveTrain extends Robot {
         this.backRightPower = (speed * Math.cos(angle) * (2 / Math.sqrt(2))) - turn;
 
     }
-    public void setPower(String direction,float speed) {
+    public void setPower(String direction,double speed) {
         if (direction.equalsIgnoreCase("RIGHT")) {
             this.frontLeftPower = Math.abs(speed);
             this.frontRightPower = -Math.abs(speed);
@@ -144,9 +147,114 @@ public class driveTrain extends Robot {
         drive();
 
     }
-    public void move(String direction,float speed) {
+    public void strafe(String direction,double speed) {
         setPower(direction, speed);
         drive();
+    }
+    public void strafe(String direction,double speed,double distance) {
+        distance = Math.abs(distance);
+        double  error;
+        double  steer;
+        double angle = angles.firstAngle;
+
+        ElapsedTime runtime = new ElapsedTime();
+
+        if (direction.equals("RIGHT")) {
+            int motorFrontRightTP = frontRight.getCurrentPosition() + (int) (distance * COUNTS);
+            int motorBackRightTP = backRight.getCurrentPosition() + (int) (-distance * COUNTS);
+            int motorFrontLeftTP = frontLeft.getCurrentPosition() + (int) (-distance * COUNTS);
+            int motorBackLeftTP = backLeft.getCurrentPosition() + (int) (distance * COUNTS);
+
+            frontRight.setTargetPosition(motorFrontRightTP);
+            backRight.setTargetPosition(motorBackRightTP);
+            frontLeft.setTargetPosition(motorFrontLeftTP);
+            backLeft.setTargetPosition(motorBackLeftTP);
+
+            frontRight.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+            backRight.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+            frontLeft.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+            backLeft.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+
+            runtime.reset();
+
+            setPower(Math.abs(speed));
+
+
+            while (linearOpMode.opModeIsActive() &&
+                    (frontRight.isBusy() && backRight.isBusy() && frontLeft.isBusy() && backLeft.isBusy())) {
+
+                angles = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
+
+                // adjust relative speed based on heading error.
+                error = drive.getError(angle, angles);
+                steer = drive.getSteer(error, driveK.P_DRIVE_COEFF);
+
+                // if driving in reverse, the motor correction also needs to be reversed
+                if (distance < 0)
+                    steer *= -1.0;
+
+                frontRight.setPower(Math.abs(speed + (steer * 0.1)));
+                backRight.setPower(Math.abs(speed + (steer * 0.1)));
+                frontLeft.setPower(Math.abs(speed - (steer * 0.1)));
+                backLeft.setPower(Math.abs(speed - (steer * 0.1)));
+
+            }
+
+            kill();
+
+            frontRight.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+            backRight.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+            frontLeft.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+            backLeft.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        }
+        else if (direction.equals("LEFT")) {
+            int motorFrontRightTP = frontRight.getCurrentPosition() + (int) (-distance * COUNTS);
+            int motorBackRightTP = backRight.getCurrentPosition() + (int) (distance * COUNTS);
+            int motorFrontLeftTP = frontLeft.getCurrentPosition() + (int) (distance * COUNTS);
+            int motorBackLeftTP = backLeft.getCurrentPosition() + (int) (-distance * COUNTS);
+
+            frontRight.setTargetPosition(motorFrontRightTP);
+            backRight.setTargetPosition(motorBackRightTP);
+            frontLeft.setTargetPosition(motorFrontLeftTP);
+            backLeft.setTargetPosition(motorBackLeftTP);
+
+            frontRight.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+            backRight.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+            frontLeft.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+            backLeft.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+
+            runtime.reset();
+
+            setPower(Math.abs(speed));
+
+
+            while (linearOpMode.opModeIsActive() &&
+                    (frontRight.isBusy() && backRight.isBusy() && frontLeft.isBusy() && backLeft.isBusy())) {
+
+                angles = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
+
+                // adjust relative speed based on heading error.
+                error = drive.getError(angle, angles);
+                steer = drive.getSteer(error, driveK.P_DRIVE_COEFF);
+
+                // if driving in reverse, the motor correction also needs to be reversed
+                if (distance < 0)
+                    steer *= -1.0;
+
+                frontRight.setPower(Math.abs(speed + (steer * 0.1)));
+                backRight.setPower(Math.abs(speed + (steer * 0.1)));
+                frontLeft.setPower(Math.abs(speed - (steer * 0.1)));
+                backLeft.setPower(Math.abs(speed - (steer * 0.1)));
+
+            }
+
+            kill();
+
+            frontRight.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+            backRight.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+            frontLeft.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+            backLeft.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        }
     }
     public void addPower(double speed) {
         frontLeftPower += speed;
@@ -384,7 +492,7 @@ public class driveTrain extends Robot {
 
         return onTarget;
     }
-    public void turnTo(double speed, double angle) {
+    private void turnTo(double speed, double angle) {
         angles = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
         while (linearOpMode.opModeIsActive() && !onHeading(speed, angle, driveK.P_TURN_COEFF, angles)) {
             // Update telemetry & Allow time for other processes to run.
@@ -397,4 +505,78 @@ public class driveTrain extends Robot {
         linearOpMode.sleep(100);
         turnTo(0.2,angle);
     }
+    public void moveDist( int dist, double speed, double angle, boolean decel) {
+        double  max;
+        double  error;
+        double  steer;
+        double  leftSpeed;
+        double  rightSpeed;
+
+        Orientation angles;
+        ElapsedTime runtime = new ElapsedTime();
+
+        // Ensure that the opmode is still active
+        if (super.linearOpMode.opModeIsActive()) {
+
+            // Determine new target position, and pass to motor controller
+            int motorFrontRightTP = frontRight.getCurrentPosition() + (int) (dist * COUNTS);
+            int motorBackRightTP = backRight.getCurrentPosition() + (int) (dist * COUNTS);
+            int motorFrontLeftTP = frontLeft.getCurrentPosition() + (int) (dist * COUNTS);
+            int motorBackLeftTP = backLeft.getCurrentPosition() + (int) (dist * COUNTS);
+
+            int motorFrontRightPos = frontRight.getCurrentPosition();
+            int motorBackRightPos = backRight.getCurrentPosition();
+            int motorFrontLeftPos = frontLeft.getCurrentPosition();
+            int motorBackLeftPos = backLeft.getCurrentPosition();
+
+            // Set Target and Turn On RUN_TO_POSITION
+            frontRight.setTargetPosition(motorFrontRightTP);
+            backRight.setTargetPosition(motorBackRightTP);
+            frontLeft.setTargetPosition(motorFrontLeftTP);
+            backLeft.setTargetPosition(motorBackLeftTP);
+
+            frontRight.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+            backRight.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+            frontLeft.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+            backLeft.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+
+            // start motion.
+            speed = clip(speed);
+
+            runtime.reset();
+
+            move(Math.abs(speed));
+
+            // keep looping while we are still active, and BOTH motors are running.
+            while (super.linearOpMode.opModeIsActive() &&
+                    (frontRight.isBusy() && frontLeft.isBusy())) {
+
+                angles = super.imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
+
+                // adjust relative speed based on heading error.
+                error = this.getError(angle, angles);
+                steer = this.getSteer(error, driveK.P_DRIVE_COEFF);
+
+                // if driving in reverse, the motor correction also needs to be reversed
+                if (dist < 0)
+                    steer *= -1.0;
+
+                leftSpeed = speed - (steer * 0.1);
+                rightSpeed = speed + (steer * 0.1);
+
+                // Normalize speeds if either one exceeds +/- 1.0;
+                max = Math.max(Math.abs(leftSpeed), Math.abs(rightSpeed));
+                if (max > 1.0) {
+                    leftSpeed /= max;
+                    rightSpeed /= max;
+                }
+                setPower(leftSpeed,rightSpeed);
+                dilatePower(Math.abs((motorBackLeftPos + backLeft.getCurrentPosition())/(int) (dist * COUNTS)));
+                drive();
+
+            }
+            this.kill();
+        }
+    }
+
 }
