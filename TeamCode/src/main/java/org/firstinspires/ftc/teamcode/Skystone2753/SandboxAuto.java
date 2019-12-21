@@ -14,6 +14,7 @@ public class SandboxAuto extends LinearOpMode {
         robot.init(this);
         waitForStart();
         // robot.getDrive().moveDist(24,1);
+        robot.getDrive().brake();
         robot.getDrive().turn(1,90);
         robot.getDrive().moveDist(24,1,90,true);
 
