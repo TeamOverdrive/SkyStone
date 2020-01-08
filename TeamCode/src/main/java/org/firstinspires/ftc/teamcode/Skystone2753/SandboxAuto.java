@@ -5,7 +5,7 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 
 @Autonomous(name = "TESTING", group = "Does this even matter?")
-public class SandboxAuto extends LinearOpMode {
+public class SandboxAuto extends Team2753LinearOpMode {
 
     Robot robot = new Robot();
 

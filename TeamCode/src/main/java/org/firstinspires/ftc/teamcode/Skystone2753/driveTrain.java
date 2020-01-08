@@ -29,14 +29,13 @@ public class driveTrain extends Robot {
     DistanceUnit FEET = new DistanceUnit(521.5841084);
     double COUNTS;
 
-    public driveTrain (LinearOpMode inLinearOpMode, BNO055IMU imu) {
+    public driveTrain (Team2753LinearOpMode inLinearOpMode, BNO055IMU imu) {
 
         COUNTS = INCHES.COUNTS_PER_UNIT;
         super.linearOpMode = inLinearOpMode;
         super.imu = imu;
 
     }
-
     public void initDrive() {
         super.linearOpMode.telemetry.addLine("InitDrive");
         super.linearOpMode.telemetry.update();
@@ -460,51 +459,6 @@ public class driveTrain extends Robot {
             this.kill();
         }
     }
-    public void setUnit(DistanceUnit unit) {
-        COUNTS = unit.COUNTS_PER_UNIT;
-    }
-    private boolean onHeading(double speed, double angle, double PCoeff, Orientation angles) {
-        double   error = 0;
-        double   steer ;
-        boolean  onTarget = false ;
-        double leftSpeed;
-        double rightSpeed;
-
-        // angles = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
-
-        // determine turn power based on +/- error
-        error = getError(angle,angles);
-
-        if (Math.abs(error) <= driveK.HEADING_THRESHOLD) {
-            steer = 0.0;
-            leftSpeed  = 0.0;
-            rightSpeed = 0.0;
-            onTarget = true;
-        }
-        else {
-            steer = getSteer(error, PCoeff);
-            rightSpeed  = speed * steer;
-            leftSpeed   = -rightSpeed;
-        }
-
-        // Send desired speeds to motors.
-        move(leftSpeed,rightSpeed);
-
-        return onTarget;
-    }
-    private void turnTo(double speed, double angle) {
-        angles = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
-        while (linearOpMode.opModeIsActive() && !onHeading(speed, angle, driveK.P_TURN_COEFF, angles)) {
-            // Update telemetry & Allow time for other processes to run.
-            angles = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
-        }
-
-    }
-    public void turn(double speed, double angle) {
-        turnTo(speed,angle);
-        linearOpMode.sleep(100);
-        turnTo(0.2,angle);
-    }
     public void moveDist( int dist, double speed, double angle, boolean decel) {
         double  max;
         double  error;
@@ -577,6 +531,58 @@ public class driveTrain extends Robot {
             }
             this.kill();
         }
+    }
+    public void setUnit(DistanceUnit unit) {
+        COUNTS = unit.COUNTS_PER_UNIT;
+    }
+    private boolean onHeading(double speed, double angle, double PCoeff, Orientation angles) {
+        double   error = 0;
+        double   steer ;
+        boolean  onTarget = false ;
+        double leftSpeed;
+        double rightSpeed;
+
+        // angles = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
+
+        // determine turn power based on +/- error
+        error = getError(angle,angles);
+
+        if (Math.abs(error) <= driveK.HEADING_THRESHOLD) {
+            steer = 0.0;
+            leftSpeed  = 0.0;
+            rightSpeed = 0.0;
+            onTarget = true;
+        }
+        else {
+            steer = getSteer(error, PCoeff);
+            rightSpeed  = speed * steer;
+            leftSpeed   = -rightSpeed;
+        }
+
+        // Send desired speeds to motors.
+        move(leftSpeed,rightSpeed);
+
+        return onTarget;
+    }
+    private void turnTo(double speed, double angle) {
+        angles = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
+        while (linearOpMode.opModeIsActive() && !onHeading(speed, angle, driveK.P_TURN_COEFF, angles)) {
+            // Update telemetry & Allow time for other processes to run.
+            angles = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
+        }
+
+    }
+    public void turn(double speed, double angle) {
+        turnTo(speed,angle);
+        linearOpMode.sleep(100);
+        turnTo(0.2,angle);
+    }
+    public void turn(double angle) {
+        super.initIMU();
+        turnTo(0.8,angle);
+        linearOpMode.sleep(100);
+        turnTo(0.2,angle);
+        turnTo(0.1,angle);
     }
 
 }
