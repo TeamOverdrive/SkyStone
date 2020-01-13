@@ -17,6 +17,7 @@ import com.qualcomm.robotcore.hardware.ServoImplEx;
 public class LiftTest extends LinearOpMode {
 
 
+    private static final double RETRACTMULTIPLIER = 0.35;
     private DcMotor liftLeft, liftRight;
 
     private double liftPower;
@@ -27,20 +28,27 @@ public class LiftTest extends LinearOpMode {
         liftLeft = hardwareMap.get(DcMotorImplEx.class, "lift_left");
         liftRight = hardwareMap.get(DcMotorImplEx.class, "lift_right");
 
-        liftLeft.setDirection(DcMotorSimple.Direction.FORWARD);
-        liftRight.setDirection(DcMotorSimple.Direction.REVERSE);
+        liftLeft.setDirection(DcMotorSimple.Direction.REVERSE);
+        liftRight.setDirection(DcMotorSimple.Direction.FORWARD);
+
+        liftLeft.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        liftRight.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
         liftLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         liftRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-
 
         waitForStart();
 
         while (opModeIsActive() && !isStopRequested()) {
 
             liftPower = -gamepad1.right_stick_y;
+            if(liftPower <= 0)
+                liftPower = liftPower*RETRACTMULTIPLIER;
             liftLeft.setPower(liftPower);
             liftRight.setPower(liftPower);
+
+            telemetry.addData("Lift Power", liftPower);
+            telemetry.update();
 
         }
     }
