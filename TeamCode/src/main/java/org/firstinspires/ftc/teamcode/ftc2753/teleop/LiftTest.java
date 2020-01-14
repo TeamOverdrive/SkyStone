@@ -28,8 +28,8 @@ public class LiftTest extends LinearOpMode {
         liftLeft = hardwareMap.get(DcMotorImplEx.class, "lift_left");
         liftRight = hardwareMap.get(DcMotorImplEx.class, "lift_right");
 
-        liftLeft.setDirection(DcMotorSimple.Direction.REVERSE);
-        liftRight.setDirection(DcMotorSimple.Direction.FORWARD);
+        liftLeft.setDirection(DcMotorSimple.Direction.FORWARD);
+        liftRight.setDirection(DcMotorSimple.Direction.REVERSE);
 
         liftLeft.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         liftRight.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
