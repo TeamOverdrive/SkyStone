@@ -1,3 +1,4 @@
+// Made by Timothy *before qualification*
 package org.firstinspires.ftc.teamcode.Skystone2753.subsystems;
 
 import com.qualcomm.hardware.bosch.BNO055IMU;
@@ -6,18 +7,18 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
 import org.firstinspires.ftc.teamcode.Skystone2753.vision.Vision;
 
+// Instantiate Robot class to gain access to all necessary basic methods
 public class Robot {
 
     public BNO055IMU imu;
     Orientation angles;
 
+    // LinearOpMode required for telemetry and hardwareMap
     public LinearOpMode linearOpMode = null;
 
     public driveTrain drive = null;
 
     public Vision vision = null;
-
-    public FoundationGrabber foundation = null;
 
     public Lift lift = null;
 
@@ -38,7 +39,6 @@ public class Robot {
         drive.initDrive();
         // vision = new Vision(linearOpMode);
         lift = new Lift(linearOpMode);
-        foundation = new FoundationGrabber(linearOpMode);
         // lift.init();
         // vision.init();
 

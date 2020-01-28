@@ -35,6 +35,7 @@ public class driveTrain extends Robot {
     DistanceUnit FEET = new DistanceUnit(521.5841084);
     double COUNTS;
 
+    // init driveTrain with linearOpMode and imu from robot class
     public driveTrain (LinearOpMode inLinearOpMode, BNO055IMU imu) {
 
         COUNTS = INCHES.COUNTS_PER_UNIT;
@@ -44,6 +45,9 @@ public class driveTrain extends Robot {
 
     }
 
+    // functions for movement do as the name implies
+    // TODO: DO NOT USE METHODS UNLESS NECESSARY. USE SUPERIOR PATHFINDING AND PID METHODS
+    // Acceptable methods --> drive(), brake(), dilate(), kill()
     public void initDrive() {
         super.linearOpMode.telemetry.addLine("InitDrive");
         super.linearOpMode.telemetry.update();
