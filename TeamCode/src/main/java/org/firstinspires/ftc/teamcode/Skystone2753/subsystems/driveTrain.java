@@ -1,4 +1,5 @@
-package org.firstinspires.ftc.teamcode;
+// Last changed by Timothy 1/27/2020
+package org.firstinspires.ftc.teamcode.Skystone2753.subsystems;
 
 import com.qualcomm.hardware.bosch.BNO055IMU;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
@@ -10,13 +11,23 @@ import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
 import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
+import org.firstinspires.ftc.teamcode.Skystone2753.util.DistanceUnit;
+import org.firstinspires.ftc.teamcode.Skystone2753.util.coefficients;
 
+// contains all BASIC movement-based functions
+// TODO: DO NOT STORE PATHFINDING MATHODS IN THIS CLASS
+
+// extends robot to use imu
 public class driveTrain extends Robot {
 
+    // motors created are not DcMotorEx because of plans to use custom PID class
     public DcMotor frontLeft,frontRight,backLeft,backRight;
-    public double frontLeftPower, frontRightPower,backLeftPower,backRightPower;
-    private double[] powers = {frontLeftPower, frontRightPower,backLeftPower,backRightPower};
 
+    // motors are each assigned a variable for power so that mathmatical functions can be carried
+    // out without changing movement speed. Use drive() to update powers
+    public double frontLeftPower, frontRightPower,backLeftPower,backRightPower;
+
+    // DistanceUnit is used for unit of measurement. Default is inches
     coefficients driveK = new coefficients();
     DistanceUnit INCHES = new DistanceUnit(43.465342326685739);
     DistanceUnit MM = new DistanceUnit( 1.711233949);

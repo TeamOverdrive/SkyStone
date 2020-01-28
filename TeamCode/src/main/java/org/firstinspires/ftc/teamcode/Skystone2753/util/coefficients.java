@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode;
+package org.firstinspires.ftc.teamcode.Skystone2753.util;
 
 public class coefficients {
     public static final double COUNTS_PER_INCH = 43.465342326685739;
