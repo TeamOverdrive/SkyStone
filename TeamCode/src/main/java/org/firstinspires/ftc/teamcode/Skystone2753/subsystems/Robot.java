@@ -17,9 +17,6 @@ public class Robot {
     public LinearOpMode linearOpMode = null;
 
     public driveTrain drive = null;
-
-    public Vision vision = null;
-
     public Lift lift = null;
 
     public Robot(LinearOpMode linearOpMode) {
@@ -37,10 +34,7 @@ public class Robot {
         initIMU();
         drive = new driveTrain(linearOpMode,imu);
         drive.initDrive();
-        // vision = new Vision(linearOpMode);
         lift = new Lift(linearOpMode);
-        // lift.init();
-        // vision.init();
 
     }
     public driveTrain getDrive() {
