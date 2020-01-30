@@ -1,3 +1,4 @@
+// Last changed by Timothy 1/29/2020
 package org.firstinspires.ftc.teamcode.Skystone2753.subsystems;
 
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
@@ -6,33 +7,38 @@ import com.qualcomm.robotcore.hardware.Servo;
 
 import java.util.concurrent.ExecutionException;
 
+// contains all methods for raising and lowering lift subsystem. Includes v4b, grabber, capper.
 public class Lift extends Robot {
 
     public static final double COUNTS_PER_INCH = 77.28;
+
+    // preset positions use if applicable
     public static final double GRAB_POS = 0.6;
+    // super grab position used for grabbing blocks while facing width-wise
     public static final double SUPER_GRAB_POS = 1;
     public static final double RELEASE_POS = 0.2;
     public static final double CAP_POS = 1.0;
     public static final double HOLD_POS = 0.7;
 
-
+    // armLeft and armRight are v4b servos
     Servo grabber, armLeft, armRight, capper;
+
     DcMotor liftLeft,liftRight;
 
+    // power variables seperate in order to preform mathmatical functions before setting power
     double liftLeftPower = 0, liftRightPower = 0;
 
+    // requires LinearOpMode to get hardwareMap and telemetry
     public Lift(LinearOpMode linearOpMode) {
+
         super.linearOpMode = linearOpMode;
-        liftLeft = linearOpMode.hardwareMap.get(DcMotor.class, "lift_left");
-        liftRight = linearOpMode.hardwareMap.get(DcMotor.class, "lift_right");
-        grabber = linearOpMode.hardwareMap.get(Servo.class, "grabber");
-        armLeft = linearOpMode.hardwareMap.get(Servo.class, "armservoleft");
-        armRight = linearOpMode.hardwareMap.get(Servo.class, "armservoright");
-        capper = linearOpMode.hardwareMap.get(Servo.class, "caprelease");
-        liftLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        liftRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+
+        init();
+
+        brake();
 
     }
+    // do not use init() unless lift is down
     public void init() {
         liftLeft = super.linearOpMode.hardwareMap.get(DcMotor.class, "lift_left");
         liftRight = super.linearOpMode.hardwareMap.get(DcMotor.class, "lift_right");
@@ -41,32 +47,16 @@ public class Lift extends Robot {
         armRight = super.linearOpMode.hardwareMap.get(Servo.class, "armservoright");
         capper = super.linearOpMode.hardwareMap.get(Servo.class, "caprelease");
     }
-    public void up() {
-        int lastPos = liftLeft.getCurrentPosition();
-        while(liftLeft.getCurrentPosition() < lastPos + 4) {
-            if (liftLeft.getCurrentPosition() < lastPos + 2) {
-                setPower(0.8);
-                lift();
-            } else {
-                setPower(0.4);
-                lift();
-            }
-
-        }
+    public void brake() {
+        liftLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        liftRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
     }
-    public void up(int blockNum) {
-        int lastPos = liftLeft.getCurrentPosition();
-        while(liftLeft.getCurrentPosition() < lastPos + (4 * blockNum)) {
-            if (liftLeft.getCurrentPosition() < lastPos + (4 * ((blockNum - 1) + 2))) {
-                setPower(0.8);
-                lift();
-            } else {
-                setPower(0.4);
-                lift();
-            }
-        }
+    public void removeBrake() {
+        liftLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
+        liftRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
     }
-    public void setPower(double speed) {
+    // sets a power but does not run lift until lift() is called
+    public void inputSpeed(double speed) {
         liftLeftPower = speed;
         liftRightPower = -speed;
     }
@@ -78,8 +68,8 @@ public class Lift extends Robot {
         liftRight.setPower(liftRightPower);
         liftLeft.setPower(liftLeftPower);
     }
-    public void run(double speed) {
-        setPower(speed);
+    public void setPower(double speed) {
+        inputSpeed(speed);
         lift();
     }
     public void grab() {

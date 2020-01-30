@@ -16,17 +16,17 @@ public class Robot {
     // LinearOpMode required for telemetry and hardwareMap
     public LinearOpMode linearOpMode = null;
 
+    //  all subsystems extend robot in order to gain access to shared code such as imu
+    // NOTE: super of subsystems is NOT set when instantiated and is not the same as the calling Robot
     public driveTrain drive = null;
     public Lift lift = null;
 
+    BNO055IMU.Parameters IMUparameters = new BNO055IMU.Parameters();
+
+    // Robot must have LinearOpMode for hardwareMap and telemetry
     public Robot(LinearOpMode linearOpMode) {
         init(linearOpMode);
     }
-
-    BNO055IMU.Parameters IMUparameters = new BNO055IMU.Parameters();
-
-    public Robot() {}
-
 
     public void init(LinearOpMode linearOpMode) {
 
