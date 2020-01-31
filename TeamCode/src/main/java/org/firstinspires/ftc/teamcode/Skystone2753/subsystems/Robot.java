@@ -10,6 +10,9 @@ import org.firstinspires.ftc.teamcode.Skystone2753.vision.Vision;
 // Instantiate Robot class to gain access to all necessary basic methods
 public class Robot {
 
+    double x;
+    double y;
+
     public BNO055IMU imu;
     Orientation angles;
 
