@@ -6,6 +6,9 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
 import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
 import org.firstinspires.ftc.teamcode.Skystone2753.vision.Vision;
+import org.firstinspires.ftc.teamcode.Skystone2753.util.GlobalCoordinatePositionUpdateSample;
+import org.firstinspires.ftc.teamcode.Skystone2753.util.OdometryGlobalCoordinatePosition;
+import org.firstinspires.ftc.teamcode.Skystone2753.util.MyOdometryOpmode;
 
 // Instantiate Robot class to gain access to all necessary basic methods
 public class Robot {
@@ -65,5 +68,11 @@ public class Robot {
         IMUparameters.loggingEnabled = true;
         IMUparameters.loggingTag = "IMU";
         imu.initialize(IMUparameters);
+    }
+    public void getX() {
+
+    }
+    public void getY() {
+
     }
 }

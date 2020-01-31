@@ -70,6 +70,7 @@ public class GlobalCoordinatePositionUpdateSample extends LinearOpMode {
             telemetry.addData("Orientation (Degrees)", globalPositionUpdate.returnOrientation());
             telemetry.addData("Thread Active", positionThread.isAlive());
             telemetry.update();
+
         }
 
         //Stop the thread
